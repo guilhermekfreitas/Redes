@@ -110,44 +110,78 @@ As taxas de transmissão são altas, mas tem-se um atraso considerável (principalm
 
 \section{The Internet core}
 
+Inicialmente define-se os modelos de comunicação, ou seja, de transporte das mensagens entre os end systems através dos links e switches.
+
 \subsection{Comutação por circuitos}
 
-Nesta forma de organização tem-se que o caminho entre dois end systems devem ser reservados antes do início de uma troca de dados.
-A consequência disto é que há uma taxa de transmissão garantida entre dois hosts. 
-Por outro lado, mesmo com os links sem utilização uma mesma conexão não pode aproveitar toda a largura de banda.
-Este é o modelo de conexão da telefonia, visto que consegue-se garantia de taxas de transmissão e que as conexões feitas pelas partes são ``limitadas'' a um máximo e a adição de um novo host leva a uma reorganização da estrutura, a fim de garantir a banda para este novo cliente.
+Nesta forma de organização tem-se que o caminho entre dois end systems deve ser reservado antes do início de uma troca de dados.
+Assim, antes da troca de dados é criado um \emph{circuito} entre os transmissores, reserva-se uma parcela da capacidade de transmissão para esta \emph{conexão}.
+Os dados, então, trafegam na rede por um caminho pré-determinado, com garantia de uma dada taxa de transmissão e um limitante para os atrasos.
 
-Há duas formas de se implementar este modelo, que consistem em formas de várias conexões utilizarem simultaneamente um link.
-A primeira é a \emph{Frequency-division multiplexing (FDM)}, onde dada a capacidade de transmissão do meio, divide-se ela em faixas de frequências distintas e isoladas que serão usadas por conexões diferentes.
-Isto é feito pelas rádios, por exemplo, e a transmissão é tão alta quanto maior for a largura de banda reservada.
+Neste modelo, um link é compartilhado por uma série de conexões, que obtém parte de sua capacidade.
+Esta divisão pode ser realizada de duas formas.
 
-A segunda forma é \emph{Time-division multiplexing (TDM)}, onde a banda de transmissão é dividida em parcelas de tempo, empregada por cada uma das conexões.
-Assim, seja a velocidade de um canal a velocidade empregada por uma conexão é tal velocidade dividida pelo número de conexões reservadas.
+A primeira é a \emph{Frequency-division multiplexing (FDM)}, onde a capacidade de transmissão do meio é dividida em faixas de frequências distintas e isoladas que serão usadas por conexões diferentes, tal como as frequências de rádio são distribuídas entre diferentes emissoras.
+Obviamente, a taxa de transmissão é tão grande quanto maior for a amplitude da faixa (ou largura de banda) reservada.
 
-Em ambos os casos, a velocidade de uma conexão é a mesma, não interessa quantos links sejam atravessados.
-As limitações deste formato é dificuldade de escalabilidade e o sub-uso do canal se alguma das conexões não estiver ativa.
-Por conta disto, a Internet usa prioritariamente a comutação por pacotes.
+A segunda forma é \emph{Time-division multiplexing (TDM)}, onde a banda de transmissão é dividida slots de tempo, reservados às conexões.
+Assim, cada conexão usa o canal para suas transmissões por um slot de tempo, resultando que a taxa obtida por ela é a taxa do canal divida pela quantidade de slots existentes.
+
+Este modelo é o mais empregado (apesar de em migração) pelas redes telefônicas, visto as suas garantias de taxas de transmissão e de atraso.
+Vale notar que em tais transações, a quantidade de dados trocados costuma ser constante e tem-se exigências de qualidade, pois são empregadas para interações em tempo real.
+
+As limitações do modelo são claras: o subuso dos links e as limitações em escalabilidade.
+Como cada conexão reserva para si uma fatia da capacidade de transmissão, o número de clientes por canal é claramente limitado e de remanejamento não trivial.
+Além disto, quando não há efetiva troca de dados os slots de tempo ou faixas de frequências não são usados e outras conexões não podem se apossar de tal capacidade inutilizada.
 
 \subsection{Comutação por pacotes}
 
-Neste modelo, ao contrário do anterior não há reserva de banda para uma conexão. 
-As mensagens trocadas são quebradas em uma série de pacotes, que trafegam pela rede, através de links e packets switches. 
-Ao contrário do modelo anterior, o tempo de entrega não é simplesmente fator da banda alocada (pois ela não o é) e da distância.
+Ao contrário do modelo anterior, aqui não se reservam recursos e nenhuma rota (ou circuito) é estabelecida com antecedência.
+Os dados são quebrados em várias partes de tamanho limitado, chamados \emph{pacotes}. 
+Estes pacotes são lançados na rede com destino a um roteador mais próximo, a partir do qual são repassados a outros roteadores e links até o destino.
 
-Inicialmente, os switches funcionam no método \emph{store-and-forward}, recebendo um pacote por completo em uma entrada para depois enviá-los por outra saída.
-Há, assim, se um pacote de $L$ bits passa por $Q$ switches, ligados por links de taxas $R$ ele tem um atraso de $QL/R$.
+Cada pacote ocupa o canal por inteiro, empregando toda sua capacidade para transmitir os bits, que vão sendo armazenados no \emph{packet switch} até que todo o pacote seja entregue.
+Finalizada a recepção, o switch encaminha o pacote para o link de saída. 
+Caso ele já esteja ocupado por algum pacote, o pacote aguardará em uma fila até que chegue sua vez de ser transmitida.
+Como estas filas são \emph{buffers} nos switches, elas são finitas e caso já estejam repletas, o pacote será descartado.
 
-Como não há reservas de recurso, se na chegada de um pacote outro pacote ocupa a linha de saída, este pacote será armazenado em um \emph{buffer} ou num fila de saída.
-Assim, numa transmissão deve-se levar em consideração um atraso de enfileiramento, que depende das condições de tráfego da rede.
+Nota-se aí grandes diferenças do modelo anterior, geradas pelo fato de que nenhuma banda foi reservada.
+Tem-se um primeiro atraso que depende do tamanho do caminho percorrido pelo pacote. Tendo ele $L$ bits, passando por $Q$ switches conectados por canais de taxa de transmissão $R$, tem-se um atraso decorrente deste método de \emph{store-and-forward} de $QL/R$.
+O segundo atraso é o de enfileiramento, ou seja, o tempo que o pacote aguarda na fila de saída antes de usar os links.
+Este é normalmente imprevisível e depende do qual sobrecarregada esteja a rede, fator que tende a aumentar muito os atrasos e até a levar à \emph{perdas} de pacotes, que não cabem na fila.
 
-Outra causa de enfileiramente é quando uma série de pacotes chega ao switch em uma taxa (a do link de entrada) superior à taxa da saída empregada.
-Isto é possível neste modelo, pois a banda não é reservada nem limitada e cada pacote usa a banda total dos links que atravessa.
+Apesar destes problemas, este é o modelo empregado prioritariamente na Internet.
+Ele é baseado no conceito de \emph{best effort}: os pacotes são transmitidos da melhor forma possível, dadas as circunstâncias.
+Ou seja, toda a banda disponível é alocada para os pacotes em tráfego e pouca ou nenhuma capacidade de transmissão é disperdiçada.
+Por outro lado, permite-se que a rede seja sobrecarregada, levando a grandes atrasos de enfileiramento, possível congestionamento da rede e perdas.
 
-Neste modelo também há \emph{perda} de pacotes, visto que os buffers são finitos e novos pacotes que cheguem terão que ser descartados.
+Outra diferença importante é que em circuitos o pacote é enviado a uma mesma taxa durante todo o caminho percorrido.
+Esta taxa é limitada, porém garantida.
+Usando-se pacotes, a taxa efetiva vai ser a menor taxa dentre as disponíveis no caminho e tem-se todos os atrasos por enfileiramento, resultantes da sobrecarga dos canais de saída.
+Nota-se que esta sobrecarga pode ocorrer simplesmente pelo fato de um link de entrada ter taxa superior a um link de saída.
 
-\subsection{Multiplexação estatística}
+Os recursos são alocados sob demanda, o que leva a se considerar que neste modelo se realiza \emph{multiplexação estatística}.
+Se há poucos usuários ou se as conexões não são persistentes (o que é bem realista), consegue-se taxas melhores que no modelo de circuitos e também que mais conexões compartilhem um mesmo link.
+%%
+
+\subsection{ISPs e Backbones da Internet}
+
+Há uma hierarquia de ISPs na Internet, que são conectados um com os outros a fim de fazer com que as mensagens possam ser trocadas por diferentes pares de end systems pelo mundo.
+
+A parte mais alta desta hierarquia são os ISPs \emph{tier-1}, chamados de \emph{Internet backbone}.
+Eles são dotados de links de alto desempenho e roteadores robustos e são conectados entre si (são \emph{peers}) e por eles passa boa parte do tráfego da Internet.
+
+Abaixo deles há os ISPs \emph{tier-2}, que se conectam a um ou mais ISPs \emph{tier-1}, possivelmente com outros \emph{tier-2} e, finalmente, com outros níveis inferiores da hierarquia.
+No nível mais baixo desta hierarquia estão as diversas redes de acesso, apesar de algumas instituições terem várias conexões distintas, se lingando muitas vezes diretamente aos \emph{tiers} mais altos.
+Em particular, \emph{tiers} mais altos são ditos provedores dos \emph{tiers} mais baixos, que são seus usuários.
+
+Os pontos de interconexão entre ISPs são chamados de \emph{Pontos de Presença (POP)} e contém uma série de roteadores que fazem comunicação entre estas grandes redes.
+Cada ISP de \emph{tier-1} tem uma série de POPs espalhados geograficamente pelo mundo, que os conectam com os \emph{tiers-2} regionais ou com outros \emph{tiers-1}.
+
+\section{Atrasos, perdas e throupughput em redes comutadas por pacotes}
 
 %%
+
 
 \section{Questões}
 
