@@ -85,7 +85,69 @@ Na segunda tem-se nas residências equipamentos chamados \emph{optical network te
 
 \paragraph{WiMAX} A IEEE 802.16 é uma concorrente para a WiFi. Eles prometem altas velocidades e operariam independentemente à infra-estrutura da telefonia celular.
 
-\subsection{Tipos de ``physical media''}
+\subsection{Meios de transmissão}
+
+Esta seção analiza os meios usados para transmissão dos bits nas redes. Há a distinção de meios guiados e meio não guiados (tecnologia ``sem fio'').
+
+\paragraph{Duplo par-trançado}
+Tecnologia mais barata, consiste em um par de fios trançados (para reduzir interferências) e isolados (com não condutores) e está presente na maior parte das residências, por ter ser usado em cabeamento telefônico. Estes cabos são usados no acesso dial-up (<56 kbps) e DSL (passam de 6Mbps). Os \emph{Unshielded Twister Pair (UTP)} são os mais usados em LANs de alta velocidade, tendo velocidades entre 10 Mbps e 1Gbps. Eles consistem em vários pares-trançados embalados em material isolante, para evitar interferência magnética.
+
+\paragraph{Cabo coaxial}
+Consiste em dois condutores concêntricos isolados entre si e isolados do meio. É mais rígido e tem altas taxas de transmissão, além de poder ser usado como meio compartilhado, podendo vários computadores se conectar a um cabo e ter acesso a todo conteúdo trocado.
+
+\paragraph{Fibra ótica}
+Os bits são modulados em comprimentos de luz que caminha em um cabo isolado, flexível e fino, se refletindo em suas paredes.
+Tem taxas de transmissão muito alta, pouca interferência e atenuação, sendo usados para comunicação de longo alcance. 
+Sua principal limitação é o preço. Suas velocidades nos modelos $OC-n$ são da faixa de $51,8x Mbps$, havendo já tecnologias para $n$ 1,3,12,24,48,96, 192, 768.
+
+\paragraph{Rádio - canais terrestres}
+Tem a vantagem de não precisar de meio físico (é o ar), mas sofre de (auto)-interferência, atenuação que limitam sua abrangência. 
+Nas LANs usa-se frequências específicas, com alcance limitado. Nas redes celulares, tem-se tecnologias de maior alcance e menores taxas.
+
+\paragraph{Rádio - satélites}
+Neste modo satélites posicionados no espaço recebem transmissões em uma frequência e retornam em outra frequência. Há dois tipos principais: os geoestacionários, que não se ``movem'' em relação ao solo (são poucos) e os de baixa órbita, que giram com a terra e tem que se comunicar entre si (tem menor alcance), podendo ser usados no futuro.
+As taxas de transmissão são altas, mas tem-se um atraso considerável (principalmente nos geoestacionário), chegando a 4 segundos.
+
+\section{The Internet core}
+
+\subsection{Comutação por circuitos}
+
+Nesta forma de organização tem-se que o caminho entre dois end systems devem ser reservados antes do início de uma troca de dados.
+A consequência disto é que há uma taxa de transmissão garantida entre dois hosts. 
+Por outro lado, mesmo com os links sem utilização uma mesma conexão não pode aproveitar toda a largura de banda.
+Este é o modelo de conexão da telefonia, visto que consegue-se garantia de taxas de transmissão e que as conexões feitas pelas partes são ``limitadas'' a um máximo e a adição de um novo host leva a uma reorganização da estrutura, a fim de garantir a banda para este novo cliente.
+
+Há duas formas de se implementar este modelo, que consistem em formas de várias conexões utilizarem simultaneamente um link.
+A primeira é a \emph{Frequency-division multiplexing (FDM)}, onde dada a capacidade de transmissão do meio, divide-se ela em faixas de frequências distintas e isoladas que serão usadas por conexões diferentes.
+Isto é feito pelas rádios, por exemplo, e a transmissão é tão alta quanto maior for a largura de banda reservada.
+
+A segunda forma é \emph{Time-division multiplexing (TDM)}, onde a banda de transmissão é dividida em parcelas de tempo, empregada por cada uma das conexões.
+Assim, seja a velocidade de um canal a velocidade empregada por uma conexão é tal velocidade dividida pelo número de conexões reservadas.
+
+Em ambos os casos, a velocidade de uma conexão é a mesma, não interessa quantos links sejam atravessados.
+As limitações deste formato é dificuldade de escalabilidade e o sub-uso do canal se alguma das conexões não estiver ativa.
+Por conta disto, a Internet usa prioritariamente a comutação por pacotes.
+
+\subsection{Comutação por pacotes}
+
+Neste modelo, ao contrário do anterior não há reserva de banda para uma conexão. 
+As mensagens trocadas são quebradas em uma série de pacotes, que trafegam pela rede, através de links e packets switches. 
+Ao contrário do modelo anterior, o tempo de entrega não é simplesmente fator da banda alocada (pois ela não o é) e da distância.
+
+Inicialmente, os switches funcionam no método \emph{store-and-forward}, recebendo um pacote por completo em uma entrada para depois enviá-los por outra saída.
+Há, assim, se um pacote de $L$ bits passa por $Q$ switches, ligados por links de taxas $R$ ele tem um atraso de $QL/R$.
+
+Como não há reservas de recurso, se na chegada de um pacote outro pacote ocupa a linha de saída, este pacote será armazenado em um \emph{buffer} ou num fila de saída.
+Assim, numa transmissão deve-se levar em consideração um atraso de enfileiramento, que depende das condições de tráfego da rede.
+
+Outra causa de enfileiramente é quando uma série de pacotes chega ao switch em uma taxa (a do link de entrada) superior à taxa da saída empregada.
+Isto é possível neste modelo, pois a banda não é reservada nem limitada e cada pacote usa a banda total dos links que atravessa.
+
+Neste modelo também há \emph{perda} de pacotes, visto que os buffers são finitos e novos pacotes que cheguem terão que ser descartados.
+
+\subsection{Multiplexação estatística}
+
+%%
 
 \section{Questões}
 
