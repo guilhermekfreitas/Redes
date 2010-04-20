@@ -1,0 +1,122 @@
+\documentclass[12pt,draft]{article}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{url}
+%\usepackage{graphicx}
+%\usepackage{listings}
+%\usepackage{verbatim}
+%\usepackage{subfigure}
+%\usepackage{multicol}
+%\usepackage{framed}
+%\usepackage[noend]{algorithmic}
+%\usepackage{algorithm}
+%\usepackage{listings} % Códigos
+\usepackage{amssymb} % Simbolos Matematicos
+\usepackage{amsfonts} % Simbolos Matematicos
+\usepackage{amsmath}
+%\usepackage{amsthm}
+%\usepackage{txfonts}
+%\usepackage{float}
+
+\newcommand{\letra}[1]{\paragraph{#1.}}
+
+\title{Questões Sugeridas \\ \small{(Relativas ao livro do Kurose $3^a$ edição \cite{kurose-3ed})} \\ MO601A - Teleprocessamento e Redes \\ Semestre 2010.1}
+\author{Daniel Cason}
+
+
+\begin{document}
+
+\maketitle
+\newpage
+
+\section{Redes de computadores e a Internet}
+
+\subsection{Q4}
+Quais são os dois tipos de serviços de transporte que a Internet provê às suas aplicações? Cite algumas características de cada um destes serviços
+
+\subsection{Q5}
+Afirma-se que controle de fluxo e controle de congestionamento são equivalentes. Isso é válido para o serviço orientado para conexão da Internet? Os objetivos do controle de fluxo e do controle de congestionamento são os mesmos?
+
+\subsection{Q7}
+Qual é a vantagem de uma rede de comutação de circuitos em relação a uma de comutação de pacotes? Quais são as vantagens da TDM sobre a FDM em uma rede de comutação de circuitos?
+
+\subsection{Q9}
+Suponha que exista exatamente um comutador de pacotes entre um computador de origem e um de destino. As taxas de transmissão entre a máquina de origem e a máquina de destino são $R_1$ e $R_2$, respectivamente. Admitindo que um roteador use comutação de apcotes do tipo armazena-e-reenvia, qual é o atraso total fim-a-fim para enviar um pacote de comprimento $L$? (Desconsidere a formação de fila, atraso de propagação e atraso de processamento.)
+
+\subsection{Q11}
+Suponha que você esteja desenvolvendo o padrão para um novo tipo de rede de comutação de pacotes e precisa decidir se seu rede usará CVs ou roteamento de datagramas. Quais são os prós e os contras da utilização de CVs?
+
+\subsection{Q12}
+Cite seis tecnologias de acesso. Classifique cada uma delas nas categorias acesso residencial, acesso coorporativo ou acesso móvel.
+
+\subsection{Q18}
+Modens discados, HFC e ADSL são usados para acesso residencial. Para cada uma dessas tecnologias de acesso, cite uma faixa de taxas de transmissão e comente se a largura de banda é compartilhada ou dedicada.
+
+\subsection{Q19}
+Considere o envio de um pacote de uma máquina de origem a uma de destino por uma rota fixa. Relacione os componentes do atraso que formam o atraso fim-a-fim. Quais deles são constantes e quais deles são variáveis?
+
+\subsection{Q21}
+Quais são as cinco camadas da pilha do protocolo da Internet? Quais as principais responsabilidades de cada uma dessas camadas?
+
+\subsection{Questão 23}
+Que camadas da pilha do protocolo da Internet um roteador implementa? Que camadas um comutador de camada de enlace implementa? Que camadas um sistema final implementa?
+
+\subsection{Problema 6}
+
+Este problema elementar começa a explorar atrasos de propagação e de transmissão, dois conceitos centrais em redes de computadores. Considere dois computadores, A e B, conectados por um único enlace de taxa $R$ bps. Suponha que esses computadores estejam separados por $m$ metros e que a velocidade de propagação ao longo do enlace seja de $s$ metros/segundo. O computador A tem de enviar um pacote de $L$ bits ao computador B.
+
+\paragraph{a.} Expresso o atraso de propagação $d_{prop}$ em termos de $m$ e $s$.
+\paragraph{b.} Determine o tempo de transmissão do pacote $d_{trans}$, em termos de $L$ e $R$
+\paragraph{c.} Ignorando os atrasos de processamento e de fila, obtenha uma expressão para o atraso fim-a-fim
+\paragraph{d.} Suponha que o computador A comece a transmitir o pacote no instante $t = 0$. No instante $t = d_{trans}$, onde estará o último bit do pacote?
+\paragraph{e.} Suponha que $d_{prop}$ seja maior que $d_{trans}$. Onde estará o primeiro bit do pacote no instante $t = d_{trans}$?
+\paragraph{f.} Suponha que $d_{prop}$ seja menor que $d_{trans}$. Onde estará o primeiro bit do pacote no instante $t = d_{trans}$?
+\paragraph{g.} Suponha $s = 2,5 . 10^8$, $L = 100$ bits e $R = 28$ kbps. Encontre a distância $m$ de forma que $d_{prop}$ seja igual a $d_{trans}$.
+
+\subsection{Problema 14}
+Suponha que dois computadores, A e B, estejam separados a uma distância de 10 mil quilômetros e conectados por um enlace direto de $R = 1$ Mbps. Suponha que a velocidade de propagação pelo enlace seja de $2.5 . 10^8$ metros por segundo.
+\paragraph{a.} Calcule o produto largura de banda-atraso $R . t_{prop}$
+\paragraph{b.} Considere o envio de um arquivo de 400 mil bits do computador A para o computador B. Suponha que o arquivo seja enviado continuamente, como se fosse uma única grande mensagem. Qual é o número máximo de bits que está no enlace a qualquer dado instante?
+\letra{c} Interprete o produto largura de banda-atraso.
+\letra{d} Qual é o comprimento (em metros) de um bit no enlace? É maior do que a de um campo de futebol?
+\letra{e} Derive uma expressão geral para o comprimento de um bit em termos da velocidade de propagação $s$, da velocidade de transmissão $R$ e do comprimento do enlace $m$.
+
+\subsection{Problema 16}
+Considere o problema 14, mas agora com um enlace de $R = 1$ Gbps.
+\letra{a} Calcule o produto largura de banda-atraso, $R . t_{prop}$
+\letra{b} Considere o envio de um arquivo de 400 mil bits no computador A para o computador B. Suponha que o arquivo seja enviado continuamente, como se fosse uma única grande mensagem. Qual será o número máximo de bits que estará no enlace a qualquer dado instante?
+\letra{c} Qual é o comprimento (em metros) de um bit no enlace?
+
+\subsection{Problema 17}
+Novamente com referência ao problema 14.
+\letra{a} Quanto tempo demora para enviar o arquivo, admitindo que ele seja enviado continuamente?
+\letra{b} Suponha agora que o arquivo seja fragmentado em dez pacotes e que cada pacote contenha 40 mil bits. Suponha que cada pacote seja verificado pelo receptor e que o tempo de transmissão de uma verificação de pacote seja desprezível. Finalmente, admita que o emisso não possa enviar um pacote até que o anterior tenha sido reconhecido. Quanto tempo demorará para enviar o arquivo?
+\letra{c} Compare os resultados de `a' e `b'.
+
+\subsection{Problema 20}
+Em redes modernas de comutação de pacotes, a máquina de origem segmenta mensagens longas de camada de aplicação (por exemplo, uma imagem ou um arquivo de música) em pacotes menores e os envia pela rede. A máquina destinatária, então, monta novamente os pacotes restaurando a mensagem original. Denominamos esse processo \emph{segmentação de mensagem}. A Figura 1.21 ilustra o transporte fim-a-fim de uma mensagem e sem segmentação. Considere que uma mensagem de $7,5 . 10^6$ bits de comprimento tenha de ser enviada da origem ao destino da Figura 1.32. Suponha que a velocidade de cada enlace seja 1,5 Mbps. Ignore atrasos de propagação, de fila e de processamento.
+\letra{a} Considero o envio da mensagem da origem ao destino \emph{sem} segmentação. Quanto tempo essa mensagem levará para ir da máquina de origem até o primeiro comutador de pacotes? Tendo em mente que cada comutador usa comutação de pacotes do tipo armazena-e-reenvia, qual é o tempo total para levar a mensagem da máquina de origem à máquina de destino?
+\letra{b} Agora suponha que a mensagem seja segmentada em 5 mil pacotes, cada um com 1.500 bits de comprimento. Quanto tempo demorará para o primeiro pacote ir da máquina de origem até o primeiro comutador? Quando o primeiro pacote está sendo enviado do primeiro ao segundo comutador, o segundo pacote está sendo enviado da máquian de origem ao primeiro comutador. Em que instante o segundo pacote terá sido completamente recebido no primeiro computador?
+\letra{c} Quanto tempo demorará para movimentar o arquivo da máquina de origem até a máquina de destino quando é usada segmentação de mensagem? Compare este resultado com sua resposta na parte `a' e comente.
+\letra{d} Discuta as desvantagens da segmentação de mensagem.
+
+\section{Camada de Aplicação}
+
+Questões: 6, 9, 12, 15, 16, 19, 22 e 23
+Problemas: 6, 7, 9, 23
+
+\section{Camada de Transporte}
+
+Questões: 1, 2, 3, 4, 5, 6, 7, 8
+Problemas: 10, 11, 12, 19, 20, 25, 27, 30, 33, 34
+
+\section{Camada de Rede}
+
+Questões: 2, 8, 19, 21, 22, 24, 32, 35, 36
+Problemas: 7, 21, 23
+
+
+\bibliographystyle{plain}
+\bibliography{../references}
+\end{document}
