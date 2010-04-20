@@ -1,4 +1,4 @@
-\documentclass[12pt,draft]{article}
+\documentclass[12pt,draft]{report}
 \usepackage[latin1]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[brazil]{babel}
@@ -30,7 +30,64 @@
 \maketitle
 \newpage
 
-\section{Redes de computadores e a Internet}
+\chapter{Redes de computadores e a Internet}
+
+Define a Internet a partir de duas abordagens: componentes de software e hardware e em termos de uma infra-estrutura de rede que provê serviços para aplicações distribuídas.
+
+Os dispositivos são chamados de \textbf{hosts} ou \textbf{end systems}, que são conectados entre si através de links de comunicação e switches de pacotes.
+Diferentes links possuem taxa de transmissão distintas, medidas em bits/s. Por eles passam pacotes, contendo dados e cabeçalhos com meta-dados.
+Dentre os switches se destacam os routers (normalmente no core da rede) e os link-layer switches (normalmente usados em redes de acesso).
+Ambos fazem o forward de pacotes para seus destinos. A sequência de links e packets switches atravessados por um pacote enviado é chamado de rota ou path.
+
+Os \emph{end systems} acessam a internet através de \emph{Internet Service Providers}, que são, per si, uma rede de packets switches e links.
+Eles provém acesso aos usuários através os mais diversos tipos de enlaces e taxas de transmissão. Ao mesmo tempo, eles são provedores de conteúdo disponibilizado na Internet.
+Os ISPs são também interconectados, formando uma hierarquia de redes.
+
+Os \emph{end systems} usam protocolos para controle da troca de dados, nos quais se destacam o IP e o TCP. O primeiro define o formato dos pacotes enviados e recebidos entre os routers e os end systems. O segundo dá suporte aos principais protocolos usados para troca de informações.
+
+A Internet também pode ser descrita como uma infra estrutura que provê serviços para aplicações, ditas distribuídas, que executam nos end systems e não no core da internet ou nos packet switches.
+Os end systems ligados à Internet oferecem uma \emph{Application Programming Interface} que especifica como os softwares rodando em outros end systems podem acessar as informações disponibilizadas.
+Para que estas informações sejam trocadas, a Internet provê serviços que permitem a comunicação entre estes elementos de software.
+
+\section{Borda da Internet}
+
+Os end systems são normalmente chamados de \emph{hosts}, pois são os lugares onde aplicativos da Internet rodam.
+Normalmente estes aplicativos são formados por dois tipos programas diferentes: \emph{clients} e \emph{servers}.
+Os primeiros normalmente solicitam e recebem algum serviço dos servers.
+Para tal eles se comunicam através de trocas de mensagens seguindo algum protocolo pré-estabelecido e conhecido por ambos.
+Neste nível, os links e switches são abstraídos, tratados como ``caixa-pretas'' que fazem a troca de dados entre os dois lados.
+
+Outra possibilidade de comunicação é o modelo \emph{Peer to peer} o P2P.
+Nele todos os hots agem tanto como clientes como servidores.
+
+\subsection{Redes de acesso}
+
+Seriam as redes que conectam os end systems ao primeiro roteador (dito de borda) no trajeto entre eles e outros end systems em outras redes.
+
+\paragraph{Dial-up} Muito empregada nos anos 90 para acesso residencial. Aproveita a infra-estrutura telefônica e os hosts fazem uma chamada tradicional para algum ISP. Um aparelho chamado modem converte o sinal digital vindo dos PCs para um sinal analógico que é enviado ao ISP, que o reconverte ao formato digital. Apresenta baixas taxas de transmissão e ocupam a linha telefônica.
+
+\paragraph{DSL} É o modo de acesso residencial mais difundido atualmente. Também aproveita a infra-estrutura telefônica, fazendo passar pelos pares trançados da telefonia três ``canais'': upstream, downstream e voz. Nas residências tem-se um \emph{splitter} que separa o canal de voz dos de dados, que são enviados a um modem específico que faz a conversão digital-analógico. Na outra parte tem-se os \emph{DSLAN} que separam o sinal (de várias residências) telefônico dos sinais de dados, digitalizados e repassados à Internet. A taxa de transmissão é considerável e depende da distância da residência e as estações, pois o sinal se degrada com a distância, por conta da atenuação e da interferência. Normalmente a banda upstream é menor que a downstream, sendo a DSL chamada de assimétrica. Outra vantagem é o uso simultâneo do telefone e da Internet. Não há chamada para o ISP como no dial-up e a conexão é persistente.
+
+\paragraph{Cabo} Neste modo se aproveita da infra-estrutura de TV a cabo. 
+Nela tem-se os \emph{head end} que fazem broadcast os canais de televisão, que viajam via fibra ótica até junções setoriais (\emph{neighboorhood-level}).
+De lá saem cabos coaxiais que alcançam as residências, o que faz com que a arquitetura seja chamada \emph{hybrid fibre coax}.
+Nas residências tem-se os chamados modens a cabo que dividem o sinal em uma banda upstream e uma maior downstream. Um dado importante é que o meio de comunicação é compartilhado, ou seja, todas as mensagens enviadas pelo \emph{head end} são recebidas em todas as casas e todas mensagens enviadas por um modem ocupam o meio, sendo necessário um protocolo para coordenar os envios de dados.
+Outra consequência disto é que a banda downstream é compartilhada por todos usuários, fazendo com que melhores taxas sejam obtidas com menos usuários empregando o serviço, enquanto se poucos usam o serviço, toda a banda upstream pode ser usada por um usuário.
+
+\paragraph{Fibber-To-The-Home} Visto que as taxas de transmissão via fibra ótica são superiores às dos cabos metálicos, algumas empresas fornecem este serviço às residências. Este acesso pode ser dedicado, com uma fibra por residência. Outra forma é o acesso compartilhado, feito com duas arquitetura \emph{active optical networks (AONs)} e \emph{passive optical networks (PONs)}. Na primeira tem-se um compartilhamento de rede como é feito na Ethernet. 
+Na segunda tem-se nas residências equipamentos chamados \emph{optical network termination (ONT)} que recebem os dados de uma fibra ótica que vai até uma estação regional que é o um \emph{optical splitter} que une os sinais e envia para um \emph{optical line terminator (OLT)} que faz a transformação para sinais elétricos. O OLT é normalmente associado um grupo de telecomunicações, que também provê telefone e canais de TV. Assim como na conexão a cabo, todos os pacoes enviados pelo OLT são replicados pelo splitter e recebidos por todos os ONTs.
+
+\paragraph{Ethernet} É o modo mais comum de acesso em LANs, conectadas a um roteador de borda. A transmissão se dá por pares-trançados isolados de metal que possui uma tecnologia particular de controle de acesso ao meio (que é compartilhado). Esta arquitetura usa de switches locais que conectam os end systems (clientes ou servidores) entre si e com o roteador.
+
+\paragraph{WiFi} É a tecnologia IEEE 802.11, usada para acesso à rede a partir de dispositivos sem fio. Em uma WLAN os end systems enviam/recebem mensagens de/para uma estação base conectada a redes cabeadas ou \emph{wired}. Estas estações podem ser conectadas a uma LAN, à Internet diretamente ou uma rede de acesso com outra tecnologia qualquer. A limitação é o alcance das antenas das estações bases, que se restringe a alguns metros. Há possibilidade de antenas mais potentes, para áreas maiores de abrangência.
+
+\paragraph{Wide-Area Wireless Access} Outra possibilidade são as WLANs que permitem o acesso de dispositivos empregando a infra-estrutura existente para a telefonia celular, usando as antenas como estações bases, com alcance muito maior. Em desenvolvimento nos últimos tempos é a tecnologia 3G que provê acesso sem fio de largo alcance, via comutação de pacotes e com velocidades mais altas.
+
+\paragraph{WiMAX} A IEEE 802.16 é uma concorrente para a WiFi. Eles prometem altas velocidades e operariam independentemente à infra-estrutura da telefonia celular.
+
+\subsection{Tipos de ``physical media''}
+
+\section{Questões}
 
 \subsection{Q4}
 Quais são os dois tipos de serviços de transporte que a Internet provê às suas aplicações? Cite algumas características de cada um destes serviços
