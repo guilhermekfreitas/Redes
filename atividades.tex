@@ -162,7 +162,6 @@ Nota-se que esta sobrecarga pode ocorrer simplesmente pelo fato de um link de en
 
 Os recursos são alocados sob demanda, o que leva a se considerar que neste modelo se realiza \emph{multiplexação estatística}.
 Se há poucos usuários ou se as conexões não são persistentes (o que é bem realista), consegue-se taxas melhores que no modelo de circuitos e também que mais conexões compartilhem um mesmo link.
-%%
 
 \subsection{ISPs e Backbones da Internet}
 
@@ -179,6 +178,87 @@ Os pontos de interconexão entre ISPs são chamados de \emph{Pontos de Presença (P
 Cada ISP de \emph{tier-1} tem uma série de POPs espalhados geograficamente pelo mundo, que os conectam com os \emph{tiers-2} regionais ou com outros \emph{tiers-1}.
 
 \section{Atrasos, perdas e throupughput em redes comutadas por pacotes}
+
+\subsection{Atrasos}
+
+Supondo que um host envia um pacote para outro host, este pacote passa por uma série de links e de nós da rede.
+A cada nó há uma série de atrasos associados a cada pacote que chega por um enlace.
+
+O primeiro atraso é o de \emph{processamento}, onde computa-se o tempo de checar a integridade do pacote (se o protocolo de enlace requerer), extrair o cabeçalho e verificar em uma tabela por qual link aquele pacote deve sair, o que dura alguns microsegundos ou até menos.
+
+O segundo atraso é o de \emph{enfileiramento} que ocorre quando há outros pacotes sendo enviados e/ou já enfileirados no enlace de saída. 
+Ele é variável e depende do tráfego da rede, sendo da ordem de microsegundos até milisegundos.
+
+Como os roteadores usam a técnica de store-and-forward, há uma atraso de \emph{transmissão} da ordem de $L/R$: tamanho do pacote/taxa do link de saída.
+Há também o tempo de \emph{propagação} de cada bit que é dado pela distância entre os dois roteadores sobre velocidade das ondas no meio.
+Esta varia entre $2$ e $3 . 10^8 m/s$, que é a velocidade da luz no vácuo.
+
+Assim, o \emph{atraso nodal} (relativo a cada nó) é dado por $d_{nodal} = d_{proc} + d_{queue} + d_{trans} + d_{prop}$.
+Em casos distintos, tem-se diferentes atrasos predominantes: rede congestionada seria o $d_{queue}$, transmissões via satélite o $d_{prop}$, baixa taxa de transmissão aumenta o $d_{trans}$ e o $d_{proc}$ é mais relevante para computar a capacidade total de processamento de dados de um roteador.
+
+Enfim, no atraso fim-a-fim são computados os atrasos de cada nó (roteador) da rede $d_{proc} + d_{queue}$ 
+e o atraso de cada link da rede $d_{trans} + d_{prop}$.
+
+\subsection{Atraso de enfileiramento e perdas}
+
+Este é o atraso mais importante, normalmente, pois ele é variável: diferentes pacotes numa mesma rota podem ter atrasos deste tipo distintos.
+Como a chegada de pacotes normalmente ocorre com uma frequência variável, estas métricas são estatísticas.
+Seja $a$ a taxa média de pacotes que chegam por segundo, $La$ é o número de bits que chegam e a razão $La/R$ é importante.
+Se esta fração se aproxima de um, a fila cresce indefinidamente, e nas proximidades o crescimento da fila é exponencial com o aumento de $a$.
+Como os buffers não são infinitos, as filas não crescem indefinidamente e ocorrem perdas de pacotes.
+
+\subsection{Throughput}
+
+Contabiliza a taxa em bits/segundo em que os dados são transferidos entre emitente e receptor.
+Como este valor tende a variar, trabalha-se com o \emph{throupughput médio} e o \emph{throupughput instantâneo} que apresentam valores interessantes para transmissões longas e para para interesses imediatos.
+
+O throupughput entre dois hosts, supondo ausência de outro tráfego, será igual à menor taxa de transmissão dentre os links intermediários.
+Este link é chamado \emph{bootleneck link}.
+Na prática, os links do core da Internet tem taxas muito elevadas e assim a limitação está nos links das bordas da rede, ou seja, às taxas fornecidas aos hosts nas redes de acesso.
+
+Outra possibilidade é que várias transferências estejam sendo feitas de vários servidores em uma rede de acesso para outros tantos clientes em outra rede de acesso.
+Caso haja, entre eles, um canal com capacidade inferior à soma das taxas de cada hosts na rede de acesso, ele pode vir a ser um bootleneck.
+
+É importante ressaltar que \emph{throupughput} e \emph{atraso} são medidas distintas, sendo mais ou menos interessantes para cada aplicação específica.
+Assim, transmissão de voz ou vídeo precisam de ambos, enquanto para uma transferência de um arquivo grande, um throupughput médio maior seria o mais interessante.
+
+\section{Camadas}
+
+Discute-se a definição de camadas, de uma pilha de camadas com seus protocolos para estudo e implementação de redes.
+Em prática, dentro de um mesmo host cada camada recebe solicitações da superior e usa serviços da inferior.
+Entre dois hosts, as camadas equivalentes se comunicam através de protocolos.
+
+Emprega-se a pilha protocolos TCP, como se segue.
+A camada mais alta é a de \emph{aplicação}, que troca \emph{mensagens}.
+Abaixo tem-se a camada de transporte, que usa o formato de \emph{segmentos}; 
+a camada de rede, que usa \emph{datagramas};
+a de enlace que usa \emph{frames} e a física, responsável pela troca efetiva de dados e específica para cada tecnologia de comunicação empregada.
+
+Cada um destes ``pacotes'' de cada camada contém os dados (que originalmente vem da aplicação) e um cabeçalho específico, 
+com informações que são úteis à camada equivalente no host que receber tal ``pacote'' na mesma camada.
+Em particular, em aplicação e transporte a comunicação se dá entre os end systems.
+Já nas demais, a comunicação é entre cada par de nós no caminho fim-a-fim.
+
+\section{Segurança em Redes}
+
+Esta seção fala por cima de alguns problemas de segurança principais em redes de computadores.
+Dentre eles tem-se: 
+\paragraph{IP spoofing} falseamento de endereço e recepção de conteúdo alheio
+\paragraph{Man-in-the-midle} interceptação de comunicação fim-a-fim, através de infiltração no core da rede
+\paragraph{Packet sniffing} possibilidade de ver tráfego alheio em redes compartilhadas
+\paragraph{Denial-of-service} faz com que um servidor fique inutilizável, através de invasões, sobrecarga de solicitações ou de conexões (usando o fato do TCP usar conexão em três vias)
+\paragraph{Ataque a hosts com malware} São os trojans (execução de algum programa ou script infectado), worms (infecção sem intervenção do usuário) e Trojan horses (aplicativos mal intencionados mascarados como aplicativos normais). Os dois últimos costumam usar o hosts para se replicar junto aos contatos do usuário.
+
+\section{História da Internet}
+
+Separada em fases:
+\paragraph{61-72} são criadas as bases para a comutação de pacotes. Culmina na ARPAnet de 72.
+\paragraph{72-80} ligação entre redes e novas redes proprietárias ALOHA, Ethernet, DECnet, arquitetura de Cerf e Kahn, princípios da ATM
+\paragraph{80-90} TCP/IP (83), smtp, dns, ftp, controle de congestionamento TCP. Redes nacionais e cerca de 100000 hosts conectados.
+\paragraph{90-2000} hypertext, html, Netscape e comercialização de produtos para Web. P2P, backbones em Gbps, 50 milhões de hosts e cerca de 100 milhões de usuários
+\paragraph{atual} cerca de 500 milhões de hosts (2007), Voip, P2P, wireless, mobilidade
+
+
 
 %%
 
