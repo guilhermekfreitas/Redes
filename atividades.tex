@@ -467,14 +467,97 @@ A transmissão por fluxo contínuo é muito mais rápida.
 \subsection{Problema 20}
 Em redes modernas de comutação de pacotes, a máquina de origem segmenta mensagens longas de camada de aplicação (por exemplo, uma imagem ou um arquivo de música) em pacotes menores e os envia pela rede. A máquina destinatária, então, monta novamente os pacotes restaurando a mensagem original. Denominamos esse processo \emph{segmentação de mensagem}. A Figura 1.21 ilustra o transporte fim-a-fim de uma mensagem e sem segmentação. Considere que uma mensagem de $7,5 . 10^6$ bits de comprimento tenha de ser enviada da origem ao destino da Figura 1.32. Suponha que a velocidade de cada enlace seja 1,5 Mbps. Ignore atrasos de propagação, de fila e de processamento.
 \letra{a} Considero o envio da mensagem da origem ao destino \emph{sem} segmentação. Quanto tempo essa mensagem levará para ir da máquina de origem até o primeiro comutador de pacotes? Tendo em mente que cada comutador usa comutação de pacotes do tipo armazena-e-reenvia, qual é o tempo total para levar a mensagem da máquina de origem à máquina de destino?
+
+O tempo até o primeiro comutador é $t = 7,5. 10^6 / 1,5 . 10^6 = 5s$. Para chegar ao destino, o tempo é o triplo pois deve-se passar por outro comutador e chegar ao destino final.
+
 \letra{b} Agora suponha que a mensagem seja segmentada em 5 mil pacotes, cada um com 1.500 bits de comprimento. Quanto tempo demorará para o primeiro pacote ir da máquina de origem até o primeiro comutador? Quando o primeiro pacote está sendo enviado do primeiro ao segundo comutador, o segundo pacote está sendo enviado da máquian de origem ao primeiro comutador. Em que instante o segundo pacote terá sido completamente recebido no primeiro computador?
+
+O tempo até o primeiro comutador é $t = 1,5.10^3/1,5.10^6 = 10^{-3}s$. O segundo pacote é completamente recebido no segundo comutador no instante $t' = 2.10^{-3}$.
+
 \letra{c} Quanto tempo demorará para movimentar o arquivo da máquina de origem até a máquina de destino quando é usada segmentação de mensagem? Compare este resultado com sua resposta na parte `a' e comente.
+
+O primeiro pacote demora $3.10^{-3}s$ para chegar à origem. Após ele chegam a cada $10^{-3}s$ um pacote. 
+Assim o tempo total de transmissão é $3 . 10^{-3} + 4999 . 10^{-3} = 5002 . 10^{-3}s$.
+
 \letra{d} Discuta as desvantagens da segmentação de mensagem.
 
-\section{Camada de Aplicação}
+No modelo de comutadores tipo store-and-forward é interessante ter mensagens pequenas, pois se mantém menos dados nos comutadores, eles precisam menos espaço e podem lidar com um fluxo mais heterogêneo de mensagens. Tem-se um atraso maior usando-se segmentação, apesar de ser bastante pequeno no exemplo.
+Além disto, com os cabeçalhos, a quantidade de dados a serem transmitidos com segmentação é maior.
 
-Questões: 6, 9, 12, 15, 16, 19, 22 e 23
-Problemas: 6, 7, 9, 23
+\chapter{Camada de Aplicação}
+
+\section{Princípios das aplicações de rede}
+
+Em toda aplicação de rede há sempre um \emph{cliente}, que envia a primeira mensagem, que seria uma solicitação.
+O \emph{servidor} então responde à solicitação e há uma troca de mensagens entre eles.
+
+Visto esta forma como se dão as aplicações de rede tem-se uma arquitetura mais empregada, que é a \emph{cliente-servidor}.
+A principal característica do servidor é estar sempre on-line, aguardando as solicitações que sempre são iniciadas por clientes, que não necessariamente estão sempre on-line.
+
+Na outra arquitetura possível, tem-se que os hosts da rede tem códigos idênticos, podendo agir como clientes e servidores, fornecendo e solicitando serviços.
+Esta arquitetura é a \emph{peer-to-peer} pois os hosts são chamados de \emph{peers}.
+
+As suas vantagens (tanto que elas estão sendo cada vez mais icentivadas) são a escalabilidade natural e 
+o menor custo para manter toda uma infra-estrutura de servidores, fazendo com que ela seja considerada \emph{cost effective}.
+
+O que limitação seu emprego são três fatores: a forma como as redes de acesso operam, sendo normalmente assimétricas as bandas up ou down;
+o icentivo que tem que ser dado aos hosts (que já não são de uma empresas, pagos por elas e exclusivo para aquele uso) para que eles disponibilizem serviços; e a questão da segurança que advém de não se ter algo centralizado e tudo distribuído, sendo mais difícil saber em quem confiar.
+
+Tendo estas arquiteturas, aborda-se como elas são implementadas.
+As aplicações empregam \emph{sockets} que são estruturas mantidas pelos sistemas operacionais responsáveis por abstrair as especificidades da troca de mensagens entre os processos.
+
+Estes sockets são, então, interfaces da camda de transporte, que fornecem alguns serviços para aplicações que a empreguem.
+Dentre os serviços desejáveis tem-se a \emph{entrega confiável} (oferecida pelo TCP), que nem sempre deve ser necessária, 
+tendo-se aplicações que podem lidar com perda de mensagens sem problemas (e usam UDP, no caso).
+Outros serviços estão ligados ao \emph{throughput} e \emph{timing} que poderiam ser garantidos, o que não ocorre na Internet (por se usar comutação por pacotes, em prática).
+Eles seriam interessante para uma série de aplicações, que devem lidar com as consequências de perdas da taxa fim-a-fim de transmissão (por uma série de motivos) e variações consideráveis no atraso de entregas.
+Uma última garantia é a de segurança, fazendo com que só os aplicativos dos hosts comunicantes tenham conhecimento do conteúdo das mensagens.
+Isto é implementado com a ``subcamada'' SSL, que encripta as mensagens antes dela ser enviada para o protocolo de transporte.
+
+Na prática a Internet provê o TCP e o UDP. 
+O primeiro é orientado a conexões, o que faz com que uma conexão tenha que ser mantida para haver a troca de dados, 
+e tem-se garantias de entrega de mensagens, que são checadas por erros e são entregues em ordem.
+O segundo não é orientado a conexão, ou seja, não se mantém estado e as mensagens são ``simplesmente'' enviadas.
+A TCP tem também um controle de congestionamento, que permite que as mensagens não inundem a rede e faz com que se tenha certa ``justiça'' na distribuição dos recursos. 
+O protocolo UDP ``permite'' que a rede seja inundada por um processo, o que pode ser interessante se quer-se desempenho e a possibilidade de usar todos os recursos necessários.
+
+Outro serviço que é oferecido às aplicações na Internet é o de endereçamento.
+Uma aplicação passa a ser unicamente identificada através do \emph{endereço IP} de seu hospedeiro e, como podem haver várias aplicações num mesmo host, a elas também estão associado um \emph{número de porta}.
+
+\section{Protocolos de Aplicação}
+
+Eles são padrões para a comunicação entre um par de processos, cada um agindo como cliente ou servidor em cada conexão.
+Define-se uma semântica das mensagens, como se inicia, encerra as conexões e os campos onde serão explicitados o contexto da transmissão de dados.
+Além disto, define-se o comportamento, ou seja, quando uma das partes envia uma mensagem e o seu conteúdo.
+
+\section{DNS}
+
+\section{Aplicações P2P}
+
+\section{Exemplos de implementação com sockets}
+
+
+\section{Questões}
+
+\paragraph{Q6} Que informação é usada por um processo que está rodando em um hospedeiro para identificar um processo que está rodando em outro hospedeiro?
+
+\paragraph{Q9} O que significa protocolo de apresentação?
+
+\paragraph{Q12} Qual a diferença entre o HTTP persistente com paralelismo e HTTP persistente sem paralelismo? Qual dos dos é usado pelo HTTP/1.1?
+
+\paragraph{Q15} Por que se diz que o FTP envia informações de controle 'fora da banda'?
+
+\paragraph{Q16} Suponha que Alice envie uma mensagem a Bob por meio de uma conta de e-mail da Web (como o Hotmail), e que Bob acesse seu e-mail por seu servidor de correio usando POP3. Descreva como a mensagem vai do hospedeirao de Alice até o hospedeiro de Bob. Não se esqueça de relacionar a série de protocolos de camada de aplicação usados para movimentar a mensagem entre os dois hospedeiros.
+
+\paragraph{Q19} É possível que o servidor Web e o servidor de correio de uma organização tenham exatamente o mesmo apelido para um nome de hospedeiro (por exemplo, \texttt{foo.com}? Qual seria o tipo de RR que contém o nome do hospedeiro do servidor de correio?
+
+\paragraph{Q22} O servidor UDP descrito na seção 2.8 precisava de uma porta apenas, ao passo que o servidor TCP descrito na seção 2.7 precisava de duas portas. Por quê? Se o servidor TCP tivesse de suporta $n$ conexões simultâneas, cada uma de um hospedeiro cliente diferente, de quantas portas precisaria?
+
+\paragraph{Q23} Para a aplicação cliente-servidor por TCP descrita na seção 2.7, por que o programa servidor deve ser executado antes do programa cliente? Para aplicação cliente-servidor por UDP descrita na seção 2.8, por que o programa cliente pode ser executado antes do programa servidor?
+
+\subsection{Problemas}
+
+6, 7, 9, 23
 
 \section{Camada de Transporte}
 
