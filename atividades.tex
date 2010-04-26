@@ -559,7 +559,190 @@ Além disto, define-se o comportamento, ou seja, quando uma das partes envia uma 
 
 6, 7, 9, 23
 
-\section{Camada de Transporte}
+\chapter{Camada de Transporte}
+
+É responsável pelo transporte fim-a-fim, por prover à camada de transporte uma comunicação lógica entre dois processos.
+A camada de rede que fica abaixo é responsável por realizar a comunicação entre dois processos.
+A de transporte, empregando a de rede faz a comunicação entre dois processos.
+
+\section{Multiplexação}
+
+Como vários processos podem rodar em um mesmo host, um dos papéis da camada de transporte é fazer a multiplexação das mensagens no emitente (para que elas compartilhem dos canais lógicos de comunicação) e demultiplexar no destinatário, remontando as mensagens do processo emitente e entregando-as ao processo destino.
+
+Para tal, os dados a serem trocados são inicialmente quebrados em \emph{segmentos} que são enviados, através do serviço de entrega oferecido pela camada de rede.
+O cabeçalho adicionado por tal segmento tem que tem, em particular, um identificador dos processos que se comunicam.
+
+Neste ponto, os dois principais protocolos de transporte são distintos.
+
+No UDP não há estabelecimento de conexão, então qualquer processo é unicamente identificado na Web através do endereço do seu hospedeiro e de um \emph{número de porta} único que é escolhido pelo processo.
+Assim, o segmento enviado contém estes dois dados que permitem a demultiplexação.
+Outro campo empregado é a porta de origem, que é usada na camada de aplicação como porta de destino para responder à mensagem.
+
+Já no TCP, esta identificação não basta.
+Ao iniciar uma conexão, um processo envia uma mensagem para um host + porta do servidor.
+Ele, então, cria um socket local com uma porta associada, que é enviada.
+
+A questão é que o servidor tem um socket (host + porta) que aceita todas requisições de conexão, iniciando-as.
+Assim, estando ela estabelecida, as mensagens que chegam para o mesmo host + porta sem o bit SYN ligado, são direcionadas ao processo que é identificado por, além do host+porta destino, do host+porta do emissor.
+Isto porque um mesmo host pode fazer requisições na mesma porta do servidor (digamos, a 80 de um servidor Web) e, além disto, hosts diferentes podem escolher uma mesma porta local.
+
+Assim, ao receber um segmento, o TCP vai analizar host + porta de partida e host + porta de destino para fazer a demultiplexação e entregara a mensagem ao processo correto.
+
+\section{UDP}
+
+Sua principal característica é não ter-se ideia de conexão. 
+Assim, se adiciona às mensagens um cabeçalho simples e se envia elas ao destinatário.
+As informações do cabeçalho são as essenciais: portas de saída e destino, tamanho do pacote (incluindo o cabeçalho) e um checksum.
+
+As portas são usadas para entregar as mensagens ao processo certo e são o que fazem que não se use diretamente um pacote IP para realizar estas trocas de mensagens sem o overload de um protocolo de transporte.
+
+O checksum é realizado sobre o segmento e também sobre parte do cabeçalho IP e consiste no complemento de 2 dos campos checados.
+O destinatário então, checa se a soma de todos os campos, inclusive o checksum não contém bits 0.
+Se houver problema, o UDP não lida com eles. Ele pode descartar a mensagem ou repassá-la ao processo junto a um warning.
+
+As vantagens do UDP são relacionadas à sua simplicidade: cabeçalho curto (8 bytes), não gasta-se tempo com o estabelecimento de conexões e não se mantém estado, ou seja, não tem-se uma série de informações e buffers que devem ser mantidas associadas a cada socket, como no caso do TCP.
+Outra grande vantagem é não ter-se as limitações de taxas de envio estipuladas pelo controle de congestionamento.
+Por outro lado, a confiabilidade da comunicação e o tratamento de perdas deve ser feito pela aplicação.
+
+\section{Transferência confiável de dados}
+
+Esta seção constroi passo a passo um protocolo de comunicação confiável entre um emitente e um receptor.
+Para tal, emprega-se uma série de mecanismos de checagem e controle que fazem com que a transmissão não-confiável (com perdas e/ou corrupção de pacotes) oferecida por uma camada inferior seja transformado num serviço confiável de entrega de dados, fornecido à camada superior.
+
+Inicialmente cita-se o mecanismos chamados protocolos \emph{Automatica Repeat reQuest} ou \emph{ARQ}.
+Eles contém, além das mensagens enviadas, mensagens de controle enviadas pelo receptor.
+São o \emph{ACK}, que indica que a mensagem chegou corretamente e \emph{NACK}, que indica que a mensagem chegou incorretamente.
+
+Estes protocolos baseiam-se no \emph{sender feedback} e tem que se basear em alguma forma de detecção de erros (corrupção).
+A grande questão deles é de como se lidar com as retransmissões. 
+A primeira alternativa é o \emph{stop-and-wait}, onde o emissor não envia novas mensagens enquanto não recebe um ACK e reenvia a mesma mensagem enquanto receber NACKs.
+
+A limitação desta abordagem é desconsiderar a possibilidade dos pacotes de controles serem corrompidos.
+Quando isto ocorre, o emissor não sabe se deve enviar uma nova mensagem ou reenviar a anterior, fazendo com que o receptor não saiba se uma mensagem está sendo reenviada ou se é nova.
+Assim, este protocolo não é suficiente pois não lida com pacotes replicados.
+
+Para fazer esta distinção, então, é necessário usar \emph{números de sequência} para os pacotes, que mesmo sendo binários, permitem saber se o pacote é novo ou duplicado.
+Assim o emitente está no estado de envio do pacote $0$, passa para obtenção do ACK para o pacote $0$, passa para envio do pacote $1$, recepção do ACK para o pacote $1$ o que fecha o ciclo.
+
+O interessante desta nova abordagem é que os NACKs passam a não ser mais necessário, pois um ACK para a sequência $0$ enquanto aguarda-se um ACK para $1$, ou seja, um \emph{ACK duplicado}, significa que o $1$ não foi recebido corretamente.
+Assim, adicionando o número de sequência aos ACKs passa a se ter somente uma mensagem de controle.
+
+Ao levar-se em consideração a possibilidade de perdas de pacotes, tem-se outro problema que é como o emissor sabe se o pacote chegou corretamente, já que tanto ele pode se perder assim como o ACK a ele associado.
+Para tal é necessário que se tenha uma reação que independa do recebimento de uma mensagem (de dados ou controle), que seja temporal.
+Assim, estipula-se um valor de tempo após o envio e se ele for atingido sem que não se tenha um feedback, o pacote é reenviado.
+
+Isto é implementado com um \emph{countdown timer}, ativado sempre que se envia uma mensagem (de controle ou não) e desativado sempre que uma resposta chega.
+Quando ele ``estoura'', um nova contagem de tempo é iniciado para o pacote duplicado enviado.
+
+Este protocolo que lida com duplicatas através de número de sequências binários e com perdas com timeouts é conhecido por \emph{alternanting-bit-protocol}.
+E ele é capaz de fazer um transporte confiável entre dois hosts, lidando com perdas e corrupção de mensagens.
+
+A questão é que nesta abordagem \emph{stop-and-wait} o tempo efetivo de uso do canal é bem reduzido.
+Isto porque somente uma mensagem pode estar trafegando por ele e nenhuma outra será enviada antes que o ACK correspondente seja recebido.
+Para lidar com esta limitação, deve-se agir de forma a permitir que várias mensagens sejam enviadas antes que uma confirmação chegue.
+Como deve-se manter a consistência da entrega, estes protocolos são considerados como uma forma de fazer um pipeline deste protocolo descrito anteriormente.
+
+Há aqui duas vertentes, que lidam de forma diferente com os pacotes ainda não confirmados: o \emph{Go-back-n} e o \emph{selective repeat}.
+
+\subsection{Go-back-N}
+
+Neste protocolo o emissor pode enviar até $N$ mensagens antes de receber alguma confirmação de entrega.
+Assim, define-se uma \emph{janela de transmissão} de tamanho $N$ que contém um intervalo de números de sequência que podem ser empregados para envio imediato de segmentos.
+Esta janela é limitada inferiormente pela \emph{base}, que é o número sucessor ao último número de sequência confirmado e superiormente por $base + n$.
+Dentro deste intervalo há um índice que é o próximo número de sequência empregável, usado como número do próximo segmento a ser enviado.
+
+Para lidar com perdas e corrupções emprega-se igualmente um temporizador.
+Caso ele estoure, reenvia-se todas as mensagens ainda não confirmadas, ou seja, com número de sequência no intervalo $[base, nextseqnum]$.
+A cada ACK recebido do pacote $x$, a base passa a ser $x+1$ e o temporizador é reiniciado se houver ainda algum pacote a ser confirmado. 
+Nota-se então que os ACKs são cumulativos, ou seja, representam que todos pacotes antes de $x$ foram recebidos corretamente.
+
+Da parte do receptor, ele mantém somente uma variável com o número do próximo pacote esperado.
+Chegando ele, gera-se um ACK para este valor, este número é incrementado e o pacote repassado para a aplicação (a recepção é em ordem).
+Qualquer pacote com número maior ou menor é descartado, mas o último ACK é reenviado, porque ele poderia ter se perdido.
+
+\subsection{Selective Repeat}
+
+Esta abordagem vem da limitação do GBN de reenviar todos pacotes ainda não confirmados na falta de um ACK com número de sequência da base.
+Em redes com muitas perdas isto pode gerar um tráfego grande de pacotes duplicados. 
+Além disto, pacotes que chegam em ordem diferente do envio são sumariamente descartados (e terão de ser reenviados).
+
+No SR tem-se a janela do emissor e do receptor com números mínimos $send_base$ e $rcv_base$ e mesmo tamanho $N$.
+O receptor irá receber qualquer pacote do intervalo e confirmá-los independentemente.
+Quando o menor pacote ou ACK esperados chegam, os $base$ são incrementados e o temporizador (que é individual por pacote enviado) é parado.
+
+A entrega ainda se dá em ordem, mas a recepção não. 
+Assim, pacotes duplicados e novos devem ser diferenciados, fazendo com que o tamanho da janela tenha que ser ao máximo metade do range de número de sequência.
+Isto garante que cada número dentro da janela só possa ser um novo pacote ou uma cópia.
+
+\subsection{Método empregado pelo TCP}
+
+O TCP emprega um híbrido das técnicas mostradas, tentando obter o melhor delas.
+Inicialmente, o número de sequência máximo é muito alto $2^{32} -1$ e o tamanho da janela é no máximo $2^{16} -1$, dependendo do controle de fluxo e congestionamento.
+Porém, este número de sequência não é o número do segmento, mas sim a quantidade de bytes já enviados.
+
+Assim, o envio se dá gerando o segmento com o próximo valor, incrementando o este valor com o tamanho dos dados e iniciando um temporizador, 
+caso nenhum já esteja em curso.
+A confirmação se dá por ACKs que contém o próximo número de sequência esperado, são cumulativos e levam ao reinício do temporizador, caso algum segmento não esteja ainda confirmado.
+
+Com o estouro do temporizador, reenvia-se o último segmento ainda não confirmado e o timer é reiniciado.
+O tempo de espera é obtido estatísticamente mas, no caso de estouro do timer, é configurado para o \emph{dobro} do valor anterior.
+
+Do lado do receptor, mantém-se o próximo byte esperado e um buffer, que armazena pacotes com números de sequências maiores, mas dentro da janela.
+Ao receber o pacote esperado o TCP não responde imediatamente, aguardando $500ms$ ou a chegada do próximo pacote (gerando um ACK cumulativo de dois segmentos).
+
+Ao receber um pacote ``futuro'', um ACK é gerado para o pacote esperado.
+No lador emissor, 3 ACKs duplicados para um segmento fazem com que ele seja reenviado, mesmo que o timer não tenha estourado, mecanismo conhecido como \emph{fast retransmit}.
+Neste mesmo caso, se o receptor obtiver o byte esperado, ele e todos os bytes seguintes recebidos são entregues à aplicação e um ACK cumulativo é gerado.
+
+Assim, evita-se o máximo retransmissões desnecessárias e possível congestionamento, pois geram-se ACKs cumulativos, só se retransmite o último pacote esperado e o timeout é duplicado em caso de atraso maior, desde que não haja novos ACKs ou novos envios.
+
+\subsection{Controle de fluxo TCP}
+
+Não foi definido anteriormente o tamanho da janela TCP, pois ela é variável.
+Esta abordagem é necessária para evitar que o emissor envie dados a uma taxa superior à taxa que o TCP processa, armazena os dados no buffer de entrada e, principalmente, à velocidade em que a aplicação lê (e, assim, libera espaço) do buffer de entrada.
+
+No início da conexão, o receptor aloca o buffer de entrada com um tamanho que é o máximo tamanho da janela.
+Este valor é repassado ao emissor, e é o tamanho incial de sua janela de envio, ou seja, o máximo número de bytes enviados e ainda não confirmados.
+A cada confirmação o receptor atualiza o tamanho da janela do emissor, com o espaço disponível naquele momento no buffer.
+
+Um problema desta abordagem é quando o buffer do receptor fica cheio, o que faz com que o emissor pare de enviar.
+Neste caso, não havendo dados no sentido contrário, a janela de envio não será atualizada, mesmo havendo espaço no buffer do receptor.
+Para contornar isto, o protocolo estabele que o emissor deve enviar periodicamente uma mensagem mínima para obter o tamanho de buffer disponível no receptor.
+
+\section{TCP}
+
+\subsection{Segmento TCP}
+
+Um segmento TCP contém um cabeçalho, com uma série de informações úteis para o fluxo entre os processos.
+
+Os primeiros campos são as portas de partida e destino (16 bits cada), usadas para multiplexação (o endereço está no pacote IP).
+
+Depois tem-se valores usados na entrega de dados, ou seja o número de sequência do segmento e o número do ACK (32 bits cada um).
+Como já dito, os segmentos são numerados com o primeiro byte do fluxo que eles carregam e os ACKs contém o próximo byte esperado do emissor.
+Vale dizer que a conexão é \emph{full-duplex}, ou seja, os dois são emissores e receptores.
+Desta forma, os ACKs costumam ir \emph{piggybacked} em pacotes com dados, o que é percebido por um bit que denota se o campo ACK é válido.
+
+Outro campo de 16 bits é usado no controle de fluxo e contém o espaço disponível na janela de recepção.
+Com 16 bits tem-se também o checksum do pacote, e há 3 bits para indicar ações de gerenciamento da conexão: \emph{SYN, FIN, RST}.
+
+Há outros campos pouco usados atualmente.
+O \emph{PSH} é um bit que diz se os dados devem ser enviados imeditamente à aplicação.
+Outro bit é o \emph{URG} indica que o campo \emph{urgent data point} (com 16 bits) contém um ponteiro para certo dado que deve ser entregue na aplicação com urgência.
+
+Finalmente, há um campo extra de opções que contém dados se o campo de tamanho de cabeçalho (4 bits) indicar mais que 5, 
+que dá o tamanho mínimo do cabeçalho TCP de 20 bytes.
+
+Além do cabeçalho tem-se os dados trocados entre os processos, cuja quantidade é variável e limitada pelo \emph{Maximum segment size} ou \emph{MSS}.
+Ele é tal que, junto ao tamanho dos cabeçalhos TCP e IP não seja maior que o \emph{maximum transmission unit} ou \emph{MTU},
+que o tamanho máximo de um \emph{frame} da camada de enlace de dados.
+
+Há também protocolos que obtém o \emph{MTU} para o caminho mais provável entre os dois hosts, com o claro objetivo de evitar ao máximo que o segmento TCP seja fragmentado em algum nó intermediário da rede.
+
+\subsection{Gerenciamento das conexões}
+
+\subsection{Estipulação dos timeouts}
+
+\section{Controle de Congestionamento}
 
 Questões: 1, 2, 3, 4, 5, 6, 7, 8
 Problemas: 10, 11, 12, 19, 20, 25, 27, 30, 33, 34
