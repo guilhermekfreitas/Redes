@@ -559,6 +559,8 @@ Além disto, define-se o comportamento, ou seja, quando uma das partes envia uma 
 
 6, 7, 9, 23
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \chapter{Camada de Transporte}
 
 É responsável pelo transporte fim-a-fim, por prover à camada de transporte uma comunicação lógica entre dois processos.
@@ -933,10 +935,153 @@ Assim, viola-se a independência das camadas se se quiser usar TCP.
 
 \section{Questões}
 
-Questões: 1, 2, 3, 4, 5, 6, 7, 8
-Problemas: 10, 11, 12, 19, 20, 25, 27, 30, 33, 34
+\paragraph{Q1} Fonte é $y$ e o destino é $x$.
 
-\section{Camada de Rede}
+\paragraph{Q2} Esta escolha depende da aplicação. 
+Se ela tem mecanismos para lidar com (ou não muda nada para ela) a perda e o desordenamento de pacotes, é interessante. 
+Se ela quer velocidade e usar completamente a banda, ou seja enviar mensagens a qualquer hora e a qualquer taxa e ter pacotes com cabeçalhos menores (e assim, transmissão mais rápida).
+Além disto se a rede entre os hosts é rápida e com muitos poucos erros.
+
+\paragraph{Q3} Sim, é possível. 
+Será necessário implementar os mecanismos de entrega confiável (possivelmente em ordem) na camada de aplicação.
+Para tal é necessário identificar a perda de pacotes (com ACKs e timers ou através de sequência semântica da aplicação) e numerá-los para que a entrega seja em ordem.
+
+\paragraph{Q4} a. falso (alguns ACKs são obrigatórios)
+b. falso (o controle de congestionamento e de fluxo o fazem)
+c. verdade (é o princípio do controle de fluxo)
+d. falso (o número depende do tamanho do pacote)
+e. verdade
+f. falso (depende do do DevRTT, pois o SampleRTT tem peso 1/8)
+g. falso (os números de ACK e sequência são independentes no mesmo segmento)
+
+\paragraph{Q5} a. tem X - 90 bytes de dados
+b. 90, pois o ACK é dado para o último número de sequência recebido em ordem
+
+\paragraph{Q6} Enviará um seg com seq=44 e ack=80 e receberá duas respostas com seq=82 e ack=...
+
+\paragraph{Q7} Metade, ou seja, $R/2$.
+
+\paragraph{Q8} Falso. Quando o timeout do emitente expira o tamanho da janela cai para 1 MSS e o threshold vai para a metade do tamanho da janela quando houve o timeout.
+
+\paragraph{P10} O protocolo do bit alternante pode falhar se houver reordenamento de mensagens.
+
+\paragraph{P11} No segundo caso seria interessante, pois o envio poderia ser imediato (sem aguardo de confirmações) e somente as raras falhas seriam reportadas e os segmentos equivalentes reenviados. Neste caso a recepção poderia ser fora de ordem e seria necessário reordená-la.
+No primeiro caso não seria interessante, pois as perdas não seriam conhecidas pois há poucos dados enviados e o gap pode não ser reconhecidos (ou vai demorar).
+
+\paragraph{P12} Tem-se que o $\frac{nL/R}{RTT + L/R}$ é o uso da rede. Como tem-se $0.027\%$ precisa-se $n = 90/0.027 = 3333.3333 < 3334$.
+
+\paragraph{P19a} Quando recebe-se um ACK para um determinado número de sequência a base é incrementada e este valor fica fora da janela. Se o número de sequência máximo não for suficiente, pode-se receber uma ACK ``perdido'' e que já foi reenviado muito tempo depois. Neste caso, ele será descartado.
+
+\paragraph{P19b} Pelo mesmo motivo.
+\paragraph{P19c e d} Verdade. Em ambos os casos se envia uma mensagem e se descartam outras mensagens fora de ordem até que um ACK volte.
+
+\paragraph{P20} a. o número de sequência é associado ao tamanho. Assim, com $2^{32}$ valores é possível mandar este número de bytes.
+
+b. O atraso de transmissão será de $n.L/R$. O número de segmentos é de $2^{32}/1460 = 2941758$. O tamanho de cada é $1460 + 66 = 1526$ e o tempo de transmissão será de $2941759 . 1526 .8 / 10^6$.
+
+\paragraph{P25} Pois a entrega é fora de ordem. Assim, supondo o ACK para o segmento $x$ é bem possível que o segmento $x+1$ seja recebido após o $x + 2$ e por aí vai.
+
+\paragraph{P27} Entre as rodadas 1 e 6 e 23 e 26 teve-se a duplicação da janela a cada rodada (RTT). Está-se na partida lenta.
+Entre as rodadas 6 e 15, entre 17 e 22 está-se no controle de congestionamento, visto fato que a janela cresce em 1 MSS.
+Na rodada 15 houveram 3 ACKs duplicados e a janela caiu pela metade.
+Na rodada 22 houve um timeout estourado.
+O valor do threshold inicial era de 32 MSS, que é o valor da janela que causou o incío do congestion avoidance. 
+Na rodada 16 ele caiu para 21, pois houve detecção de congestionamento e ele era 42 antes (na rodada 15).
+Na rodada 22 a janela era 26 e caiu para 13 após a detecção do congestionamento.
+Rodadas e segmentos: 1,1; 2,3; 3,7; 4, 15; 5, 31; 6, 63; 7, 96. Assim, o segmento 70 foi enviado na rodada 7.
+Na rodada 26 a janela tem tamanho 8 e threshold de 13. Perdendo-se um pacote nesta rodada teria-se janela e threshold de tamanho 4.
+
+\paragraph{P30} O controle de fluxo TCP limita o tamanho da janela do emissor a partir do espaço livre no buffer do receptor. Como este é suficiente para manter todo o fluxo este limite não existiria.
+Mesmo sendo a taxa de chegada de dados ao TCP do emitente superior à capacidade do canal em 10 vezes, o controle de congestionamento não vai reduzir o tamanho da janela, pois não há perdas ou duplicação de ACKs.
+Como o buffer de saída é $1\%$ do tamanho do arquivo, se ele tiver tamanho menor que $R$ bits ele também passará a ser uma limitação.
+Assim, a janela máxima possível (que seria de $R$ bytes) nunca seria atingível.
+
+\paragraph{P33} A vantagem é ter uma janela inicial bastante grande e poder enviar muitos pacotes logo no primeiro timeout. A questão são as outras conexões. Se a rede tiver tomado um estado de grande tráfego, o envio de uma quantidade imensa de pacotes irá aumentar o problema. Até porque vários deles não irão chegar. Neste caso, empregando o Reno terá uma perda e a janela cairá para apenas um pacote.
+
+\subsection{Problema 34}
+
+Nela faz-se o cálculo da latência para envio de dados continuamente passados pela aplicação para o outro host usando uma conexão TCP.
+São dados o $RTT$, o tamanho $O$ do arquivo, o MSS $S$, o tamanho $W$ da janela de transmissão e taxa de transmissão $R$.
+
+Os valores dados são o $RTT = 100ms$, $O = 100kbytes$ e $S = 536 bytes$.
+Pergunta-se a latência mínima e o $W$ mínimo necessário, com taxas $R_1 = 28kbps$, $R_2 = 100kbps$, $R_3 = 1Mbps$ e $R_4 = 10 Mbps$.
+
+
+%%%%%%%%%%%%%%5
+
+\chapter{Camada de Rede}
+
+Esta é uma das camadas mais importantes e mais desafiadoras da Internet.
+O seu papel é realizar a entrega de pacotes entre dois hosts quaisquer, 
+através do \emph{roteamento} e \emph{forwarding} dos pacotes nos nós intermediários da rede.
+Assim, esta é uma das camadas presentes no core da rede.
+
+O \emph{forwarding} é a operação realizada pelos \emph{packet switches}, recebendo pacotes em uma interface (enviadas por um nó através de um enlace) 
+e enviando-os por outra interface (outro enlace, levando-os a outro nó da rede).
+Esta decisão é feita através de uma busca em uma \emph{forwarding table} pela interface de entrada + bits obtidos do cabeçalho do pacote.
+Se tal cabeçalho é o da camada de rede tem-se um \emph{roteador}.
+
+Já o \emph{roteamento} é um cálculo de um caminho entre dois hosts quaisquer na rede, ou seja, a definição de uma série de nós intermediários que devem ser passados por um pacote para alcançar o destino.
+Em cada um destes nós, ocorre o \emph{forwarding} segundo uma tabela que é atualizada através de um protocolo de roteamento.
+
+Em alguns modelos de rede (que não incluem o modelo da Internet) esta camada também é responsável por realizar a \emph{conection setup}.
+Ela consiste na reserva de recursos nos nós intermediários da rede antes que a comunicação propriamente dita (a troca de dados) ocorra.
+
+\section{Modelos de serviço}
+
+É possível que a camada de rede forneça \emph{garantias de entrega}: pacotes cheguem e possivelmente dentro de um período de tempo definido.
+Além disto, é possível que se tenha \emph{entrega ordenada} e \emph{garantias de segurança} como encriptação, integridade de dados e autenticação da origem.
+É possível estabelecer outras formas mais flexíveis de qualidade de transmissão, como \emph{jitter máximo} e \emph{taxa de transmissão mínima}.
+
+A Internet usa um modelo de \emph{best-effort} que não garante nada disto.
+Nas redes \emph{ATM} tem-se várias garantias, divididades em duas classes:
+
+\paragraph{Constant Bit Rate} Interessante para tráfego telefônico e multimídia. Há reserva de recursos e de uma taxa fixa de transmissão. 
+Há limites aceitáveis de jitter e de perda ou atraso.
+Antes das transmissões as conexões devem ser iniciadas e tais valores são negociados com a rede ATM.
+Não há congestionamento.
+
+\paragraph{Avaliable Bit Rate} Modo mais flexível, onde se garante uma taxa mínima de transmissão 
+e caso haja recursos disponíveis, a transmissão pode usar maior banda.
+A entrega é ordenada, podem haver perdas e o controle de congestionamento é realizado pela camada de rede, com células especiais de controle.
+
+\subsection{Circuitos Virtuais}
+
+É o modelo de transporte na camada de rede que oferece uma conexão entre dois hosts na rede.
+Assim, antes do envio de dados há uma etapa de inicialização.
+Dado o endereço do destinatário calcula-se o caminho (uma série de enlaces e roteadores) que são informados da conexão através de mensagens de sinalização.
+
+Cada roteador recebe uma mensagem do tipo a partir de um enlace $a$ e com um identificador $CV_i$ os associa a um outro enlace $b$ e outro $CV_{i+1}$.
+Esta quádrula $a, CV_i, b, CV_{i+1}$ é armazenada na tabela de forwarding e mantida lá até que receba-se outra mensagem que encerre tal conexão.
+Assim, há uma transmissão entre os dois hosts interessados (ida e volta) que permite a configuração da rota (através de cada forward)
+e uma possível negociação e alocação dos recursos necessários.
+
+Durante o envio dos dados o mesmo caminho é sempre empregado. 
+Cada nó do percurso preenche o campo $CV$ especificado na tabela e o coloca na interface indicada, 
+sendo que os nós intermediários adicionalmente leem o cabeçalho do pacote para realizar a busca na tabela.
+
+\subsection{Comutação de Pacotes}
+
+Este é o modelo empregado pela Internet.
+Para enviar uma mensagem um host preenche um endereço (único na rede) no cabeçalho do pacote e o põem na rede.
+Não há o conceito de conexão, ou seja, o caminho não é previamente conhecido e nenhum recurso da rede é alocado.
+
+Cada roteador extrai o endereço e busca na tabela pela interface para onde ele deve redirecionado.
+Como os endereços podem ser grandes, emprega-se uma tabela de prefixos e procura-se pela \emph{longest prefix matching rule}.
+
+Nota-se que nenhum estado é mantido nos roteadores relacionado a determinada comunicação.
+Esta tabela, porém, é modificada por algoritmos de roteamento, mas com muito menos frequência que a tabela dos CVs.
+Isto também faz com que pacotes de um mesmo fluxo de dados tomem destinos diferentes, não havendo garantia de ordenação na entrega.
+
+\paragraph{}
+
+A distinção deste modelos advém de suas origens.
+Os CVs se originam na telefonia, cuja característica é ter-se um núcleo da rede complexo e uma borda ``burra''.
+Já na Internet tem-se interesse que o núcleo da rede seja simples (a ponto de possibilitar que várias tecnologias sejam usadas) e a complexidade se encontra na borda.
+
+\section{Funcionamento dos routeadores}
+
+\section{Questões}
 
 Questões: 2, 8, 19, 21, 22, 24, 32, 35, 36
 Problemas: 7, 21, 23
