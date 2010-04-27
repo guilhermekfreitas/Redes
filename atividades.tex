@@ -696,6 +696,18 @@ Neste mesmo caso, se o receptor obtiver o byte esperado, ele e todos os bytes se
 
 Assim, evita-se o máximo retransmissões desnecessárias e possível congestionamento, pois geram-se ACKs cumulativos, só se retransmite o último pacote esperado e o timeout é duplicado em caso de atraso maior, desde que não haja novos ACKs ou novos envios.
 
+\subsubsection{Estipulação dos timeouts}
+
+O cálculo dos valores que deve ser empregado pelos temporizadores é feito através de estimativas, baseadas em medições de \emph{Round Times Trips} reais.
+Elas são obtidas através de uma amostragem dos RTTs de alguns segmentos de uma conexão, dentre os que não são retransmitidos.
+
+Tem-se o valor estimado para o RTT $EstimatedRTT = (1 - \alpha) . EstimatedRTT + \alpha . SampleRTT$, que é uma amostragem que exponencialmente decresce a influência de medidas antigas.
+Além dele, usa-se a variação do RTT $VarRTT = (1 - \beta) . VarRTT + \beta . | EstimatedRTT - SampleRTT|$, com o mesmo formato.
+
+Define-se o valor de timeout como sendo $EstimatedRTT + 4 . VarRTT$ e recomenda-se $\alpha = 0.125$ e $\beta = 0.25$.
+Idealmente, o timeout é algo superior ao RTT (para evitar retransmissões desnecessárias) mas não tanto a ponto do tempo de resposta a perdas ser longo demais.
+
+
 \subsection{Controle de fluxo TCP}
 
 Não foi definido anteriormente o tamanho da janela TCP, pois ela é variável.
@@ -740,9 +752,186 @@ Há também protocolos que obtém o \emph{MTU} para o caminho mais provável entre o
 
 \subsection{Gerenciamento das conexões}
 
-\subsection{Estipulação dos timeouts}
+A abertura de uma conexão TCP é feita através de três passos, sendo conhecida como \emph{three-way handshape}:
+\paragraph{1} O cliente envia um segmento TCP sem dados, com o bit \emph{SYN} ativado e com um número de sequência aleatório.
+\paragraph{2} O servidor aloca os buffers e variáveis para a conexão e responde com outro pacote sem dados. 
+Ele tem o bit \emph{SYN} ativado, um número de sequência e o número de sequência do cliente incrementado no campo ACK.
+Ele é uma confirmação do estabelecimento da conexão, sendo chamado de \emph{SYNACK}.
+\paragraph{3} Recebendo este pacote, o cliente aloca buffers e variáveis e responde ao servidor com o campo ACK adequado e, possivelmente, com dados.
+\paragraph{} 
+
+Nota-se que o passo 2 pode ser perigoso, pois inúmeras conexões podem ser abertas sem serem usadas.
+Este ataque é conhecido como \emph{syn flood} e causa negação de serviço, pois várias conexões são meio-abertas para nada.
+
+Há uma modificação no TCP que evita tal ataque, empregando \emph{syn cookies}.
+Nela, o servidor não cria a estrutura e responde com um número de sequência especial, calculado a partir dos endereços e uma chave secreta.
+Se um cliente legítimo retornar um ACK, o servidor checa se o número de sequência é correto e inicializa a estrutura, que não é comprometida.
+
+O fechamento de uma conexão TCP é feito com quatro passos:
+\paragraph{1} Uma das partes envia um segmento com o bit \emph{FIN} ativado
+\paragraph{2} A outra parte envia um ACK, desaloca recursos e envia um \emph{FIN}
+\paragraph{3} A solicitante recebe o \emph{FIN} e envia um ACK
+\paragraph{4} O solicitante aguarda por um tempo (estado \emph{TIMEWAIT}) antes de desalocar os recursos completamente
+
+\paragraph{} Além destas possibilidades, há o uso do bit \emph{RST}. 
+Ele é empregado para responder segmentos para alguma porta de destino não alocada.
 
 \section{Controle de Congestionamento}
+
+Protocolos como o TCP fazem com que conexões entre hosts através de links não confiáveis sejam oferecidas às aplicações como conexões lógicas entre hosts, com garantias de entrega confiável.
+Assim, os mecanismos já citados da camada de transporte visam lidar principalmente com a perda de pacotes.
+Esta perda está associada principalmente ao descarte de pacotes que é realizado pelos roteadores do core da rede, quando a taxa de chegada de dados é superior à taxa em que tais pacotes podem ser transmitidos pelo enlace de saída.
+
+Assim, os mecanismos de entrega confiável empregam retransmissões para tratar de sintomas do congestionamento da rede, 
+mas não tratam as causas de tais perdas.
+E tais causas normalmente estão associadas a muitos processos e/ou hosts que enviam pacotes à uma taxa mais alta que a suportada pelos enlaces.
+
+As consequências destas inundações são diretamente percebidas pelas aplicações, que notam uma degradação, um subuso da rede.
+Isto porque as camadas inferiores não lidam com os pacotes como dados, como algo que tem semântica definida, ou seja, não distinguem um envio de uma retransmissão.
+
+É interessante notar que mesmo em cenários irreais, o congestionamento ocorreria. 
+Ou seja, mesmo com buffers infinitos, havendo duas conexões que compartilham um mesmo enlace com taxa $R$ haverá perda de eficiência se estas duas conexões estiverem usando, conjuntamente, boa parte ou toda a largura da rede.
+
+Neste caso, isto se deve a um dos mecanismos usados para inferir perdas, que é o RTT acima do esperado.
+Quando um roteador começa a operar com taxas de entrada que se aproximem à sua capacidade de saída o tempo de resposta cresce exponencialmente.
+
+Isto faz com os temporizadores estourem e pacotes (que serão entregues, pois não há perdas) sejam desnecessariamente retransmitidos, fazendo com que parte do esforço de transmissão seja desperdiçado com pacotes duplicados, que serão descartados no destino.
+Assim, neste cenário irrealístico, a taxa efetiva de transmissão das várias conexões será inferior ao esperado.
+
+Como na realidade os buffers são finitos, tem-se perdas quando a fila de saída do roteador está cheia.
+Assim alguns pacotes chegam e outros não chegam ao destino, mas, visto o grande delay, a camada de transporte não saberá distinguí-los, reenviando todos.
+
+Isto pode ser ainda mais complicado se se supõe que há vários roteadores no caminho do pacote, todos sobrecarregados.
+Neste caso, mesmo que um pacote não seja descartado em algum deles, há grande probabilidade dele ser descartado em outros intermediários,
+fazendo com que o throupughput efetivo tenda a zero quando as taxas de envio somadas forem próximas à capacidade da rede.
+
+Assim, o congestionamento deve ser evitado ou tratado, sob risco de se ter uma estagnação na comunicação entre processos da rede.
+Mostra-se a seguir as principais abordagens empregáveis.
+
+\subsection{Network-assisted}
+
+Nesta abordagem a camada de rede (ou seja, os roteadores) provêm feedback explícito sobre o tráfego de rede.
+Isto pode ser feito através da sinalização (ativação de algum bit no cabeçalho de rede) nos pacotes que trafegam em um ambiente congestionado, 
+através de mensagens especiais enviadas pelos roteadores aos emissores e/ou 
+através de mensagens especiais trocadas pelos hosts finais e com campos alterados durante o seu percurso na rede.
+
+Um exemplo desta abordagem é o mecanismo \emph{Avaliable Bit Rate} (\emph{ABR}) empregado nas redes \emph{ATM}.
+Nele, além de pacotes de dados há pacotes especiais \emph{Resource Management Cells} ou \emph{RM cells} que trafegam junto aos pacotes comuns mas não contém carga útil.
+
+Há três abordagens de sinalização de congestionamento.
+Na primeira os roteadores modificam o bit \emph{EFCI} de pacotes comuns que trafeguem em ambientes congestionados.
+Ao receber um pacote todo host checa este bit e achando-o ativado, envia uma célula RM com bit \emph{Congestion Indication} ativado para o emissor.
+
+Além destes avisos de emergência, tem-se as células RM que trafegam na rede, interpostas entre conjunto de pacotes comuns.
+Elas possuem um campo de \emph{taxa explícita}, que pode ser decrementado pelos roteadores, fazendo com que os hosts finais saibam a taxa mais alta possível na rede.
+Além deles tem-se o CI já citado e o \emph{No Increase} que significa que tem-se risco de congestionamento se a taxa for incrementada.
+
+Com base nos dados obtidos do tráfego destas células RM pela rede, calcula-se a taxa máxima de envio nos hosts finais e tem-se um mecanismo eficaz para evitar e tratar do congestionamento.
+
+\subsection{End-to-end}
+
+Quando a camada de rede não provê feedback explícito do tráfego, a camada de transporte deve inferir o estado da rede através do comportamento do tráfego fim-a-fim.
+Este é o caso do protocolo IP, o que faz com que o TCP, empregando as taxas de perda e a quantidade de ACKs duplicados, tente inferir se há congestionamento.
+
+Identificando possíveis situações do gênero, o TCP deve reduzir sua taxa de envio de pacotes, o que é feito limitando o tamanho da janela de transmissão,
+que já é limitada também pelo controle de fluxo.
+Ao mesmo tempo, estando a rede livre, espera-se que o limite de tamanho da janela não seja mais estabelecido pelo congestionamento (que não há),
+mas sim pelo controle de fluxo.
+
+Assim, o TCP age da seguinte forma.
+Quando um segmento é perdido (ou seja, há um timeout ou três ACKs duplicados) a taxa de transmissão deve cair.
+Quando a confirmação de um segmento é recebida, a rede entregou o pacote e a taxa de transmissão pode ser aumentada.
+Mas até quando ela pode ser aumentada? No caso do TCP, ela é aumentada até que haja perdas, ou seja, até que se tenha um alerta de possível congestionamento, e, neste caso, ela deve ser reduzida (normalmente de forma brusca).
+
+\section{Controle de Congestionamento TCP}
+
+Consiste em manter a taxa de envio em dois estágios distintos:
+
+\paragraph{Partida lenta} A conexão é normalmente iniciada com janela mínima de 1 \emph{MSS}. A partir daí, a cada ACK recebido, a janela é incrementada. Assim, a cada RTT, a janela é duplicada. Este crescimento se dá exponencialmente até que se chegue a um \emph{threshold} pré-determinado.
+
+\paragraph{Congestion Avoidance} A partir do \emph{threshold}, o crescimento da janela passa a ser linear com os RTTs. Assim, a cada RTT incrementa-se o tamanho da janela em 1 \emph{MSS}
+
+\paragraph{Fast Recovery} Recebendo-se um \emph{ACK}, vai-se para o \emph{congestion avoidance}. Esta fase é recomendada e o TCP Tahoe não implementa ela.
+
+\paragraph{Timeout} Em qualquer destes estágios, se há um timeout para algum pacote, a janela é reduzida a \emph{1 MSS} e volta-se à \emph{partida lenta}. 
+O \emph{threshold} é configurado para a metade do valor atual da janela.
+
+\paragraph{Três ACKs duplicados} O \emph{threshold} é configurado para a metade do valor atual da janela. No TCP Reno a janela é reduzida para o novo valor do \emph{threshold} e vai-se para o \emph{fast recovery}. No Tahoe, o comportamento é igual a de um timeout.
+
+Por suas características este mecanismo tem-se uma adição incremental e um descrescimento multiplicativo (\emph{AIMD}), 
+levando a um comportamento serrilhado.
+Ignorando a partida lenta, o crescimento é linear até passar do limite e fazer com que algum segmento seja perdido e receba-se o terceiro ACK.
+Aí a janela é dividida pela metade (o que pode ser conservador) e continua-se crescendo-a linearmente.
+
+\subsection{Justiça}
+
+Além de evitar que a rede seja inundada, o controle de congestionamento teria como objetivo também distribuir igualitariamente dentre as várias conexões a banda disponível.
+Isto não ocorre exatamente com o TCP, visto que RTTs maiores tem crescimento mais lento na janela de transmissão e assim são prejudicados.
+
+Porém, o mecanismo per si tende a levar conexões com RTTs próximos a, após certo tempo, dividirem a banda igualitariamente.
+É interessante notar que a justiça é entre conexões e não entre processos. Se um mesmo processo fizer múltiplas conexões, ele ocupará maior parte da banda, provavelmente.
+
+Vale notar que o UDP não tem controle de banda e, assim, pode ``tomar'' toda banda de conexões TCP que, vendo indícios de congestionamento vão reduzir a taxa de transmissão.
+É bom notar que não ter restrições de banda é uma vantagem do UDP, mas que, normalmente, a maior parte do tráfego UDP é bloqueado nos firewalls.
+
+\subsection{Adendos ao TCP}
+
+\paragraph{TCP Vegas} Calcula-se a diferença \emph{vazão esperada - (tamanho da janela/minimo RTT)}. 
+Se ela for superior a um $\beta$, há um acréscimo linear da janela.
+Se for inferior a um $\alpha$, há um decréscimo linear da janela.
+O congestionamento é inferido a partir do RTT, não pelas perdas.
+Assim, as perdas são mais raras, o que faz com que a reação (o fast recovery) para ACK duplicados seja imediato (não a cada três).
+O crescimento da janela é exponencial a cada RTT não incrementada a cada ACK.
+O resultado é um tamanho de janela mais estável e convergente.
+
+\paragraph{TCP Sack} Opção negociável onde o receptor pode comunicar quais segmentos faltam (confirmação seletiva). 
+A retransmissão é condicionada a não ter-se em trânsito mais segmentos que o tamanho da janela.
+Assim, evita-se retransmissões desnecessárias.
+
+\paragraph{TCP Fack} Modifica-se o TCP Sack de forma de manter o número de segmentos em trânsito e não confirmados menores que a janela.
+
+\paragraph{TCP New Reno} Modificação do TCP Reno em que no \emph{fast recovery} cada ACK duplicado aumenta em 1 MSS o tamanho da janela, 
+sendo encerrado com um ACK válido.
+
+\paragraph{Stream Control Transmission Protocol (SCTP)} 
+Alternativa ao TCP com suporte a novas funcionalidades.
+As principais são o \emph{multi-streaming} e \emph{multi-homing}, que permitem que uma mesma conexão contenha múltiplos fluxos e que os dados usem endereços e caminhos diferentes.
+Os dados são divididos em vários chunks que são reunidos no destino e entregue as aplicações. 
+Além do mais, os chunks podem ter tanto dados como sinalizações e o estabelecimento da conexão evita o \emph{syn flood}, com 4 passos de comunicação.
+A entrega pode ser ordenada ou não, sendo indicada para dados multimídia também.
+
+\paragraph{Opções para o UDP} Há o \emph{UDP Lite} e o \emph{Datagram Congestion Control Protocol} que trazem o controle de congestionamento para o UDP, 
+possibilitando usar a semântica simples do UDP para conexões na Internet (para multimidia, por exemplo).
+
+\subsection{TCP para redes com alto produto banda-atraso}
+
+O controle de congestionamento se dá através de perdas e o crescimento da janela por RTT.
+Se o RTT é alto a janela cresce muito lentamente (mesmo havendo largura de banda).
+Se a banda é bem larga (redes de alta velocidade) a janela máxima é atingida após muito tempo, com taxas irrealisticamente baixas de erros.
+
+As abordagens para redes de alta velocidade é obter crescimento mais rápido e implementar técnicas de crescimento baseado em atraso ou mistas.
+
+Quando tem-se muito atraso, como nos enlaces por satélite, emprega-se soluções genéricas que empregam estimativas de banda passante e possibilitam um crescimento mais rápido da janela, não dependente completamente do RTT.
+Outra opção é segmentar a conexão, empregando um protocolo comum nos enlaces normais e um protocolo específico nos enlaces via satélite.
+
+\subsection{TCP para redes sem fio}
+
+Os problemas estão associados a alta taxa de erros inerente do meio, que serão tratadas como falso indício de congestionamento.
+Outra questão são as perdas de sinal e os handoffs, que são desconexões e caem no mesmo problema.
+
+Uma das linhas de solução é a segmentação da conexão entre a rede sem fio e rede normal.
+A escolha a ser feita é a capacidade de tratamento de erro + suporte a handoff contra o tamanho dos buffers que as estações bases terão de ter (para mascarar as perdas).
+
+Outra linha mantém a conexão fim-a-fim e tenta discriminar o erro do enlace de rede das perdas por congestionamento.
+Pode-se usar outros modelos de detecção de erros (como o jitter), congelar os relógios quando há erro local ou permissões para crescimento mais rápido da janela, mesmo com os erros.
+Pode-se também mascarar as perdas do ambiente também.
+Outra linha viola a autonomia fim-a-fim e tem-se notificações entre emissor e receptores.
+
+Para o ambiente \emph{ad-hoc} o grande problema é a perda de rotas e conexões.
+Neste caso não pode-se abstrair os problemas da camada de rede tratando-os como erros.
+Assim, viola-se a independência das camadas se se quiser usar TCP.
+
+\section{Questões}
 
 Questões: 1, 2, 3, 4, 5, 6, 7, 8
 Problemas: 10, 11, 12, 19, 20, 25, 27, 30, 33, 34
