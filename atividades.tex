@@ -24,10 +24,10 @@
 \title{Questões Sugeridas \\ \small{(Relativas ao livro do Kurose $3^a$ edição \cite{kurose-3ed})} \\ MO601A - Teleprocessamento e Redes \\ Semestre 2010.1}
 \author{Daniel Cason}
 
-
 \begin{document}
 
 \maketitle
+\tableofcontents
 \newpage
 
 \chapter{Redes de computadores e a Internet}
@@ -259,21 +259,20 @@ Separada em fases:
 \paragraph{atual} cerca de 500 milhões de hosts (2007), Voip, P2P, wireless, mobilidade
 
 
-
-%%
-
-
 \section{Questões}
 
 \subsection{Q4}
 Quais são os dois tipos de serviços de transporte que a Internet provê às suas aplicações? Cite algumas características de cada um destes serviços
 
-%TODO
+Um é baseado em conexão e outro não. 
+O primeiro provê entrega confiável, ordenada, controle de fluxo e de congestionamento. 
+A outra não provê nenhuma garantia de entrega, mas, por outro lado, não limita o taxa de envio nem tem o overhead de conexão e informações.
 
 \subsection{Q5}
 Afirma-se que controle de fluxo e controle de congestionamento são equivalentes. Isso é válido para o serviço orientado para conexão da Internet? Os objetivos do controle de fluxo e do controle de congestionamento são os mesmos?
 
-%TODO
+Não. O controle de fluxo visa evitar que um emissor envie dados a uma taxa maior que o destino pode aceitar e processar.
+O de congestionamento visa evitar que a rede fique sobrecarregada de dados, inviabilizando a troca de dados e disperdiçando os recursos da rede.
 
 \paragraph{Q7}
 Qual é a vantagem de uma rede de comutação de circuitos em relação a uma de comutação de pacotes? Quais são as vantagens da TDM sobre a FDM em uma rede de comutação de circuitos?
@@ -282,9 +281,7 @@ As vantagens das redes comutadas por circuito são as garantias dadas à transmiss
 Como antes da transmissão são alocados recursos nos nós intermediários, tem-se uma taxa garantida de transmissão e atrasos controlados.
 Assim, a priori, toda a transmissão se dá sem jitter, com atraso constante e a taxas pré-estabelecidas.
 
-Tem vantagem?
-%TODO
-
+A vantagem do TDM é fornecer a conexão a totalidade da taxa de transmissão restrita a um intervalo, enquando na FDM tem-se uma taxa limitada durante o tempo todo.
 
 \paragraph{Q9}
 Suponha que exista exatamente um comutador de pacotes entre um computador de origem e um de destino. As taxas de transmissão entre a máquina de origem e a máquina de destino são $R_1$ e $R_2$, respectivamente. Admitindo que um roteador use comutação de apcotes do tipo armazena-e-reenvia, qual é o atraso total fim-a-fim para enviar um pacote de comprimento $L$? (Desconsidere a formação de fila, atraso de propagação e atraso de processamento.)
@@ -484,6 +481,8 @@ Assim o tempo total de transmissão é $3 . 10^{-3} + 4999 . 10^{-3} = 5002 . 10^{
 No modelo de comutadores tipo store-and-forward é interessante ter mensagens pequenas, pois se mantém menos dados nos comutadores, eles precisam menos espaço e podem lidar com um fluxo mais heterogêneo de mensagens. Tem-se um atraso maior usando-se segmentação, apesar de ser bastante pequeno no exemplo.
 Além disto, com os cabeçalhos, a quantidade de dados a serem transmitidos com segmentação é maior.
 
+%%%%%%%%%%%%%%%%%%%%%%
+
 \chapter{Camada de Aplicação}
 
 \section{Princípios das aplicações de rede}
@@ -530,34 +529,114 @@ Eles são padrões para a comunicação entre um par de processos, cada um agindo co
 Define-se uma semântica das mensagens, como se inicia, encerra as conexões e os campos onde serão explicitados o contexto da transmissão de dados.
 Além disto, define-se o comportamento, ou seja, quando uma das partes envia uma mensagem e o seu conteúdo.
 
-\section{DNS}
+\subsection{HTTP}
+
+%TODO
+
+\subsection{FTP}
+
+%TODO
+
+\subsection{E-mail}
+
+%TODO
+
+\subsection{DNS}
+
+%TODO
 
 \section{Aplicações P2P}
 
-\section{Exemplos de implementação com sockets}
+Há várias formas de arquitetura P2P.
 
+A de diretórios centralizados possui um servidor (como o Napster original) que contém o conteúdo e o endereço dos peers e faz autenticação.
+Este é uma espécie de modelo misto, onde há um servidor que centraliza informações importantes.
+
+É possível ter-se um diretório descentralizado, formado por uma série de nós especiais que agem como tal e ao qual estão ligados uma série de nós ``normais''. 
+Este modelo é descentralizado e hierárquico.
+
+Outra possibilidade é a forma totalmente descentralizada, onde conhece-se um peer e através dele tenta-se chegar ao destino, inundando a rede com a solicitação, cada um enviando a solicitação a todos os vizinhos. Um exemplo seria o Gnutella.
+
+\subsection{Distribuição de arquivos P2P}
+
+A vantagem desta abordagem aparece quando um arquivo grande deve ser distribuído para uma série de vários hosts distintos.
+No modelo cliente-servidor o tempo total de distribuição dependerá dos links de download dos clientes (do mais lento) ou da taxa de upload do servidor,
+supondo que as redes de acesso sejam o funil da rede.
+
+Já no modelo P2P os cliente pode obter o arquivo do servidor e distribuí-los com outros nós da rede.
+Assim o tempo máximo de distribuição será o que pior for entre as taxas de download mínimo ou upload do server para baixar uma cópia
+e distribuição das $N$ cópias com o upload de todos os peers.
+
+A diferença será a escalabilidade, pois o custo do modelo clássico aumenta linearmente com o número de clientes enquanto o P2P tende a não passar de um máximo, independentemente do número de peerrs.
+
+Uma aplicação famosa nesta área é o Bit Torrent. 
+Cada conjunto de dados é um torrent que contém um tracker que é um servidor.
+O tracker passa aos clientes uma lista de alguns peers do mesmo torrent e com eles são trocados chunks (pedaços do total).
+Dentre um peer e seus vizinhos tem-se um esforço de obter os chunks menos frequentes e de fornecer chunks aos vizinhos que enviam dados a maiores taxas.
+Isto converge pela escolha ``otimistas'' de vizinhos arbitrários para enviar dados, fazendo com que eles também troquem dados efetivamente.
+
+\subsection{Distributed Hash Table}
+
+Esta aplicação permite gerar um banco de dados distribuídos.
+Os dados são localizados nos peers que são mais próximos ao hash do conteúdo buscado.
+
+A fim de facilitar a busca, cria-se uma rede overlay circular (com conceito de sucessor e antecessor) com ``atalhos'' para diminuir o custo de busca e inserção.
+
+\subsection{Comunicação - Skype}
+
+Uma aplicação importante de P2P é o Skype.
+Ele possui uma arquitetura P2P hierarquizada, contendo supernós (em uma rede overlay) ao qual estão associados uma série de nós.
+
+O banco de usuários on-line é obtido destes supernós que também tem o papel de intermediar a comunicação P2P entre peers que estiverem atrás de NAT.
 
 \section{Questões}
 
 \paragraph{Q6} Que informação é usada por um processo que está rodando em um hospedeiro para identificar um processo que está rodando em outro hospedeiro?
 
+É necessário saber o endereço do host do processo e o número da porta associada ao processo.
+
 \paragraph{Q9} O que significa protocolo de apresentação?
+
+É uma troca de mensagens entre dois hosts a fim de estabelecer uma conexão entre eles e iniciar uma troca de dados.
 
 \paragraph{Q12} Qual a diferença entre o HTTP persistente com paralelismo e HTTP persistente sem paralelismo? Qual dos dos é usado pelo HTTP/1.1?
 
+%TODO
+
 \paragraph{Q15} Por que se diz que o FTP envia informações de controle 'fora da banda'?
+
+%TODO
 
 \paragraph{Q16} Suponha que Alice envie uma mensagem a Bob por meio de uma conta de e-mail da Web (como o Hotmail), e que Bob acesse seu e-mail por seu servidor de correio usando POP3. Descreva como a mensagem vai do hospedeirao de Alice até o hospedeiro de Bob. Não se esqueça de relacionar a série de protocolos de camada de aplicação usados para movimentar a mensagem entre os dois hospedeiros.
 
+%TODO
+
 \paragraph{Q19} É possível que o servidor Web e o servidor de correio de uma organização tenham exatamente o mesmo apelido para um nome de hospedeiro (por exemplo, \texttt{foo.com}? Qual seria o tipo de RR que contém o nome do hospedeiro do servidor de correio?
+
+%TODO
 
 \paragraph{Q22} O servidor UDP descrito na seção 2.8 precisava de uma porta apenas, ao passo que o servidor TCP descrito na seção 2.7 precisava de duas portas. Por quê? Se o servidor TCP tivesse de suporta $n$ conexões simultâneas, cada uma de um hospedeiro cliente diferente, de quantas portas precisaria?
 
+O servidor TCP possui duas portas: uma recebe as solicitações de conexão e cria outra porta por onde o tráfego de dados se dá efetivamente.
+Para suportar $n$ conexões são necessárias $n+1$ portas.
+
 \paragraph{Q23} Para a aplicação cliente-servidor por TCP descrita na seção 2.7, por que o programa servidor deve ser executado antes do programa cliente? Para aplicação cliente-servidor por UDP descrita na seção 2.8, por que o programa cliente pode ser executado antes do programa servidor?
 
-\subsection{Problemas}
+Porque a conexão tem que ser estabelecida e, para tal, o servidor deve estar ativo. Caso contrário os dados do cliente não chegarão a serem enviados.
+No UDP se o cliente é executado antes do servidor não haverá nenhuma saída, mas o programa funciona pois não é necessária uma conexão prévia.
 
-6, 7, 9, 23
+\paragraph{P6}
+%TODO
+
+\paragraph{P7}
+%TODO
+
+\paragraph{P9}
+%TODO
+
+\paragraph{P23}
+%TODO
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1003,6 +1082,8 @@ Assim, a janela máxima possível (que seria de $R$ bytes) nunca seria atingível.
 Nela faz-se o cálculo da latência para envio de dados continuamente passados pela aplicação para o outro host usando uma conexão TCP.
 São dados o $RTT$, o tamanho $O$ do arquivo, o MSS $S$, o tamanho $W$ da janela de transmissão e taxa de transmissão $R$.
 
+%TODO
+
 Os valores dados são o $RTT = 100ms$, $O = 100kbytes$ e $S = 536 bytes$.
 Pergunta-se a latência mínima e o $W$ mínimo necessário, com taxas $R_1 = 28kbps$, $R_2 = 100kbps$, $R_3 = 1Mbps$ e $R_4 = 10 Mbps$.
 
@@ -1079,13 +1160,26 @@ A distinção deste modelos advém de suas origens.
 Os CVs se originam na telefonia, cuja característica é ter-se um núcleo da rede complexo e uma borda ``burra''.
 Já na Internet tem-se interesse que o núcleo da rede seja simples (a ponto de possibilitar que várias tecnologias sejam usadas) e a complexidade se encontra na borda.
 
-\section{Funcionamento dos routeadores}
+\section{Funcionamento dos roteadores}
+
+%TODO
 
 \section{Questões}
 
-Questões: 2, 8, 19, 21, 22, 24, 32, 35, 36
-Problemas: 7, 21, 23
+\paragraph{Q2}
 
+%TODO
+
+\paragraph{Q8}
+
+%TODO
+
+\paragraph{P7}
+
+%TODO
+
+%Questões: 19, 21, 22, 24, 32, 35, 36
+%Problemas: 21, 23
 
 \bibliographystyle{plain}
 \bibliography{../references}
