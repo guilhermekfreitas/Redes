@@ -531,19 +531,58 @@ Além disto, define-se o comportamento, ou seja, quando uma das partes envia uma 
 
 \subsection{HTTP}
 
-%TODO
+É um dos protocolos mais importantes da Internet, provendo acesso ao conteúdo.
+Há duas partes envolvidas: o \emph{browser} cliente e o servidor Web.
+
+O \emph{HyperText Transfer Protocol} possui uma série de \emph{request} do cliente e \emph{response} do servidor.
+O servidor, por sua vez, não mantém estado a não ser que se usem \emph{cookies} que são números mantidos no cliente que o servidor pode empregar para localizar dados da conexão (ou de anteriores) em algum banco de dados dele.
+
+As conexões HTTP são de dois tipos: \emph{não-persistentes}, quando uma conexão traz um único objeto ou \emph{persistente} caso múltiplos objetos são enviados pela mesma conexão. 
+Dentro das persistentes é possível ainda haver \emph{pipeline}, fazendo com que o cliente solicite um objeto assim que o identificar e sem aguardar o envio do objeto subsequente.
+O padrão HTTP 1.0 usa conexões não persistentes, enquanto o 1.1 usa persistentes com pipeline, por padrão.
+
+Quando várias máquinas acessam o mesmo conteúdo pode ser interessante configurar \emph{proxyes} que retornam os objetos imediatamente, caso não seja explicitamente solicitada a versão mais nova, do servidor.
+
+Quanto uma mesma máquina acessa várias vezes o mesmo conteúdo ela mantém o último obtido em cache local.
+É possível fazer um \emph{conditional GET} que retorna o objeto somente se ele tiver sido modificado (caso contrário retorna 304).
 
 \subsection{FTP}
 
-%TODO
+Protocolo de transferência de arquivos, sendo usada a porta 21 por padrão.
+Esta é a porta da \emph{conexão de controle}, por onde ocorre a autenticação, a navegação e a solicitação de dados.
+Os dados per si podem ser enviados em outra conexão, fazendo com que o controle seja \emph{out of band}.
 
 \subsection{E-mail}
 
-%TODO
+Outro serviço importante da Internet, formado por agentes usuários, servidores de e-mail e o protocolo \emph{Simple Mail Transfer Protocol}.
+O SMTP é usado entre os servidores para enviar mensagens de um usuário hospedado nele para a caixa de outro usuário em outro servidor.
+
+Entre o usuário e o servidor são usados alguns protocolos. 
+Para recebimento das mensagens da caixa tem-se o \emph{POP} e o \emph{IMAP} e pode-se usar alguma interface Web, via HTTP.
+Para envio, usa-se o SMTP.
 
 \subsection{DNS}
 
-%TODO
+O \emph{Domain Name Server} é o serviço responsável pela tradução de nomes para endereços IP na Internet.
+Ele é um banco de dados distribuído e é um protocolo de aplicação (fica na borda) que roda em UDP.
+
+Ele contém uma hierarquia onde tem-se os servidores raiz (que são poucos pelo mundo) 
+que tem endereços de uma série de servidores top-level-domain (.br, .org), 
+que tem os endereços dos servidores de instituições, que tem endereços dos hosts.
+
+Na consulta os hosts se conectam a um servidor local. Ele pode ter a resposta em cache ou pode iniciar a consulta.
+Há duas formas de fazer a consulta: \emph{recursiva} ou \emph{iterativa}.
+
+Na recursiva o servidor local solicita ao raiz o endereços, este solicita ao próximo responsável e por aí vai até chegar ao autoritativo (o que responde pelo endereço).
+Daí o caminho de volta é feito e a resposta chega ao local, que repassa ao cliente.
+
+Na iterativa, o servidor local solicita à raiz o endereço do próximo servidor e ele mesmo o consulta, assim em diante, até obter o endereço final, que é repassado ao cliente.
+
+Os registros do DNS são dos tipo: 
+\emph{A} associa nome a IP, 
+\emph{CNAME} associa apelido a nome canônico, 
+\emph{NS} associa domínio ao seu DNS autoritativo 
+e \emph{MX} associa o domínio ao seu servidor de e-mails.
 
 \section{Aplicações P2P}
 
@@ -601,19 +640,19 @@ O banco de usuários on-line é obtido destes supernós que também tem o papel de i
 
 \paragraph{Q12} Qual a diferença entre o HTTP persistente com paralelismo e HTTP persistente sem paralelismo? Qual dos dos é usado pelo HTTP/1.1?
 
-%TODO
+O usado é o com paralelismo. Nele o cliente pode requisitar mais objetos antes de receber o primeiro objeto requisitado. No outro caso, cada solicitação e envio de objetos são sequenciais.
 
 \paragraph{Q15} Por que se diz que o FTP envia informações de controle 'fora da banda'?
 
-%TODO
+Pois cria uma nova conexão para transferência de dados, não usando aquela empregada para navegação e controle.
 
 \paragraph{Q16} Suponha que Alice envie uma mensagem a Bob por meio de uma conta de e-mail da Web (como o Hotmail), e que Bob acesse seu e-mail por seu servidor de correio usando POP3. Descreva como a mensagem vai do hospedeirao de Alice até o hospedeiro de Bob. Não se esqueça de relacionar a série de protocolos de camada de aplicação usados para movimentar a mensagem entre os dois hospedeiros.
 
-%TODO
+Via HTTP ela vai para o servidor, que repassa via SMTP para o outro servidor, que é acessado via POP pelo destinatário.
 
 \paragraph{Q19} É possível que o servidor Web e o servidor de correio de uma organização tenham exatamente o mesmo apelido para um nome de hospedeiro (por exemplo, \texttt{foo.com}? Qual seria o tipo de RR que contém o nome do hospedeiro do servidor de correio?
 
-%TODO
+Sim, é possível. O servidor de correio associado ao domínio é armazenado em entradas do tipo MX.
 
 \paragraph{Q22} O servidor UDP descrito na seção 2.8 precisava de uma porta apenas, ao passo que o servidor TCP descrito na seção 2.7 precisava de duas portas. Por quê? Se o servidor TCP tivesse de suporta $n$ conexões simultâneas, cada uma de um hospedeiro cliente diferente, de quantas portas precisaria?
 
@@ -1082,10 +1121,30 @@ Assim, a janela máxima possível (que seria de $R$ bytes) nunca seria atingível.
 Nela faz-se o cálculo da latência para envio de dados continuamente passados pela aplicação para o outro host usando uma conexão TCP.
 São dados o $RTT$, o tamanho $O$ do arquivo, o MSS $S$, o tamanho $W$ da janela de transmissão e taxa de transmissão $R$.
 
-%TODO
+A conexão demanda uma troca de mensagens e se solicita os dados no segundo envio. Então o primeiro bit de dados chegam em $2RTT$.
+Após isto, o primeiro ACK é enviado após $S/R$ que é o tempo de chegada do primeiro MSS.
+
+Se este ACK chegar ao emissor antes do final do envio dos $W$ segmentos da janela, o envio será contínuo.
+Assim, se $RTT + S/R < W(S/R)$ então o tempo total de envio será de $2.RTT + O/R$.
+
+Caso contrário, o emissor ficará aguardando pelo ACK sem enviar, ou seja, por $S/R + RTT - W(S/R)$.
+Assim, seja $K = O/(WS)$ a quantidade de janelas que são necessárias para o envio de todos os $O$ bits de dados.
+Este tempo de inatividade do emissor ocorrerá $K-1$ vezes.
+Assim, o tempo de envio será $2.RTT + O/R + (K-1).(S/R + RTT - W(S/R))$.
+
+Em resumo, o tempo total para receber um fluxo de dados é a soma: 
+(i) do tempo até receber o primeiro bit (depende do RTT); 
+(ii) o tempo para a transmissão de todos os dados (depende da taxa e do tamanho do arquivo);
+(iii) o tempo de ociosidade do emissor entre as $K$ janelas que serão enviadas, que depende do tamanho da janela, do tamanho do MSS, da taxa e do RTT.
 
 Os valores dados são o $RTT = 100ms$, $O = 100kbytes$ e $S = 536 bytes$.
 Pergunta-se a latência mínima e o $W$ mínimo necessário, com taxas $R_1 = 28kbps$, $R_2 = 100kbps$, $R_3 = 1Mbps$ e $R_4 = 10 Mbps$.
+
+É feito para $R_1 = 28kbps$ e para os outros é equivalente.
+A latência mínima ocorre se a janela for grande a ponto para que $RTT + S/R \le W(S/R)$.
+Neste caso a latência é dada por $2.RTT + O/R = 2.0.1 + 100.1024.8/28.1000 = 29.2$ segundos.
+Para tal $W \ge (RTT + S/R)/(S/R) = 1.65$, então $W = 2$.
+
 
 
 %%%%%%%%%%%%%%5
