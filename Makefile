@@ -1,7 +1,7 @@
 # $Id: mkfile.in,v 1.1 2004/05/29 03:24:59 dan Exp $
 #
 
-NAME=atividades
+NAME=mo901
 
 USE_PDFLATEX=1
 VIEWPDF=evince
