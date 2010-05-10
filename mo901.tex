@@ -1223,6 +1223,96 @@ Já na Internet tem-se interesse que o núcleo da rede seja simples (a ponto de po
 
 %TODO
 
+\section{Protocolo IP}
+
+É resposável pelo endereçamento, formato e manipulação dos datagramas na Internet.
+Há duas versões atuais: o \emph{IPv4} mais utilizado e o \emph{IPv6} como uma nova proposta, já empregada em alguns nichos.
+
+O IP transporta os dados dentro de datagramas, cujo cabeçalho tem as informações necessárias para seu devido encaminhamento ao destino.
+Os primeiros campos são de versão do IP empregada (4 bits), o ``tipo de serviço'' (não muito empregado, com 8 bits) o tamanho do datagrama (16 bits) e o tamanho do cabeçalho (4 bits).
+Este tem tamanho mínimo de 20 bytes podendo ser extendido com palavras de 4 bytes com parâmetros extras.
+
+Dois campos importantes são o endereço de partida e o de destino, com 32 bits cada.
+Há também o campo \emph{TTL} ou tempo de vida, que é o número de hops que o pacote ainda pode percorrer (8 bits), um identificador da camada superior para onde o pacote deve ser repassado (8 bits) e um \emph{checksum do cabeçalho}, em complemento de dois em 16 bits.
+Este checksum é checado por cada roteador e recalculado, visto que o campo TTL é alterado. Isto é um pequeno gargalo.
+
+Outro conjunto de campos são relacionados à \emph{fragmentação} do pacote, que ocorre quando ele tem que passar por um enlace cujo frame é menor que o datagrama.
+Sabendo desta possibilidade, o emissor assinala um identificador de 16 bits ao pacote. 
+Ao fragmentá-lo, o roteador quebra o payload em valores múltiplos de 8 bytes cujo início é marcado no campo \emph{fragment offset} de 13 bits.
+Todos os fragmentos a menos do último tem um bit de \emph{flag} setado para 1.
+A remontagem do pacote só se dá no destino usando o \emph{id} do pacote, os \emph{offsets} e bits.
+Sendo remontado, ele é passo ao protocolo de destino, sendo normalmente descartando se um fragmento não chega.
+Esta política de fragmentação foi removida do \emph{IPv6} por conta do custo para os roteadores e a vulnerabilidade desta estratégia (falsos offsets, eternos fragmentos).
+
+\subsection{Endereçamento IPv4}
+
+Os endereços contém 32 bits, levando a $2^{32}$ (cerca de 4 bilhões) de endereços, apesar de várias faixas serem reservadas.
+Apesar dele ser um endereçador de hosts, cada \emph{interface} de algum equipamento de rede possui um endereço IPv4 próprio.
+Ele é formado por um prefixo de \emph{subnet} de bits mais significativos e os demais bits endereçam interfaces dentro de uma mesma subrede.
+Dentre estes bits menos significativos é possível definir outras subredes com outros prefixos, hierarquicamente.
+
+Assim, além de endereços IPv4 únicos tem-se \emph{endereços de redes} formados por um prefixo de $x$ bits e com os demais bits nulos.
+Estes $x$ bits são a máscara da (sub-)rede, que pode comportar $2^{32-x} - 2$ endereços IPv4 distintos.
+Com esta estrutura é possível \emph{agregar} endereços e reduzir o tamanho das tabelas de roteamento, 
+com um roteador divulgando o endereço da maior subrede ``abaixo'' dele.
+É possível, porém, que alguns endereços desta faixa ``abaixo'' dele não estejam sobre seu controle, 
+sendo divulgadas por outro roteador que as possuem com uma máscara $y < x$.
+Como o associação para o redirecionamento se dá pelo \emph{maior} prefixo, esta estratégia funciona.
+
+Esta forma de organização é chamada de \emph{Classes Interdomain Routing} ou \emph{CIDR}.
+Inicialmente tinha-se classes \emph{A,B,C} com máscaras \emph{8,16,24}, mas dado a imensa diferença de número de IPv4 associadas acabaram sendo flexibilizadas para máscaras de tamanhos arbitrários.
+
+Para finalizar, a unicidade destes endereços é regulamentada por uma organização chamada \emph{ICANN}, que é descentralizada entre outras organizações regionais.
+Ela é responsável por alocar faixas de IPs e também pela alocação de nomes DNS, neste caso na resolução de conflitos de nomes.
+
+\subsubsection{DHCP}
+
+O \emph{Domain Host Configuration Protocol} tem como principal objetivo automatizar a configuração de um endereço IP único dentro de uma subnet para os hosts.
+Além do endereço IP normalmente se configura a máscara de rede, o primeiro roteador (ou \emph{gateway}), o endereço do DNS local, dentre várias outras possibilidades.
+Um parâmetro importante é o \emph{lease-time}, que é a validade do endereço, o que permite ao servidor rehaver um endereço que foi fornecido e não é mais usado (e cujo host não ``devolveu'' antes de sair).
+Nota-se que com isto é possível atender não simultaneamente mais hosts do que os endereços disponíveis.
+
+Assim, um host ingressante irá enviar uma mensagem de \emph{discover} para a rede no endereço \emph{255.255.255.255} de broadcast e para a porta 67 UDP.
+A resposta será esperada no endereço \emph{0.0.0.0} (\emph{myself}) na porta 68 UDP e tem-se um ID de transação.
+Um servidor DHCP que receba a mensagem irá responder com um \emph{offer} com o mesmo ID em broadcast, adicionando o endereço IP sugerido e demais informações.
+O cliente que o receber responderá com um \emph{request} em broadcast, incrementando o ID incrementado e adicionando o endereço do servidor escolhido.
+Este responde em broadcast com um \emph{ack} e é finalizado o processo.
+Nota-se que tudo é feito em broadcast, pois podem haver vários servidores DHCP na rede: o cliente é livre de escolher o que mais lhe convir, 
+mas os demais também ter ciência desta escolha (caso contrário, podem pensar que alguma mensagem foi perdida!).
+
+\subsubsection{NAT}
+
+A quantidade e a forma com que os IPv4 foram distribuídos podem fazer com que eles sejam insuficientes em muitos casos para todos os hosts de uma rede.
+Além disto, há faixas do endereçamento IPv4 que são reservadas para ``redes privadas''.
+Elas claramente não são identificadores únicos na Internet, pois hosts em subredes distintas podem ter o mesmo IP,
+das faixas \emph{10.0.0.0/8}, \emph{172.16.0.0/12} e \emph{192.168.0.0/16}.
+
+Assim, uma solução para prover acesso à Internet para vários computadores de uma rede do tipo é o \emph{Network Address Translation}.
+Nela o roteador tem um IPv4 dito ``real'' em uma interface e uma rede privada em outra. 
+Toda esta rede é vista na Internet como um único endereço: o do roteador.
+
+O papel do roteador é fazer com que a troca de pacotes ocorra. Como os que estão na rede privada são clientes, eles abrem conexões TCP.
+Antes do roteamento, o roteador muda os campos de proveniência do pacote para seu endereço e a porta para uma porta sua qualque não alocada.
+Em uma \emph{tabela de tradução NAT} ele mantém o endereço e porta originais do cliente e o endereço e portas dele próprio com o qual ele sobrescreveu os campos do pacote original.
+Ao checar uma resposta, ele checa esta tabela, restaura os valores sobrescritos e tudo fica transparente ao cliente.
+
+O problema é quando o host ``atrás'' de um NAT é o servidor. 
+Neste caso, como ele não tem endereço único na rede ele é inalcançável: pacotes enviados para ele serão recebidos pelo roteador que não saberá o que fazer deles.
+As soluções para este problema são a \emph{connection reversal} onde o servidor contacta o cliente (fora do NAT), 
+configuração manual de uma associação ``inversa'' no roteador (com uma tabela de pós roteamento) 
+ou o protocolo \emph{UPnP} que negocia com o roteador esta associação de forma dinâmica.
+
+Enfim, o NAT é visto por muitos como um remendo aos problemas do IPv4. 
+Além destas limitações do host ficar ``invisível'' na Web, tem-se o limite de conexões que podem usar o NAT (são $2^{16}$ portas disponíveis no cabeçalho TCP) e toda a questão que portas são de camada de transporte para assignar processos, não para assignar hosts, que é uma solução crosslay etc.
+Por outro lado, a solução pode ser bem interessantes para redes onde se há dinamismos e somente clientes e não se quer comprar mais endereços para os novos hosts (como residências).
+E, finalmente, o NAT hoje é amplamente empregado e difundido.
+
+\subsection{Protocolo ICMP}
+
+\subsection{IPv6}
+
+
+
 \section{Questões}
 
 \paragraph{Q2}
