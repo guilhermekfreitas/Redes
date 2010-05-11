@@ -1307,11 +1307,51 @@ Além destas limitações do host ficar ``invisível'' na Web, tem-se o limite de co
 Por outro lado, a solução pode ser bem interessantes para redes onde se há dinamismos e somente clientes e não se quer comprar mais endereços para os novos hosts (como residências).
 E, finalmente, o NAT hoje é amplamente empregado e difundido.
 
-\subsection{Protocolo ICMP}
+\subsubsection{Protocolo ICMP}
 
-\subsection{IPv6}
+O \emph{Internet Control Message Protocol} é considerado com parte do protocolo IP, sendo responsável pela sua sinalização de erros.
+Por outro lado, os pacotes ICMP são enviados no payload de um datagrama IP, assim como os segmentos TPC e UDP.
+
+Um pacote ICMP tem um campo de tipo e outro de código e contém os primeiros 8 bytes do cabeçalho do pacote IP que gerou o erro.
+Ele é empregado para sinalizar erros de construção de datagramas IP, erros encontrados no processamento do pacote no host de destino
+(porta inexistente, protocolo inexistente) e impossibilidade de entrega do pacote ao host ou rede destino, por eles serem inexistentes ou inalcançáveis.
+
+Além disto, ele retorna erro quando o TTL do pacote é zerado e tem funções de ping (\emph{echo request} e \emph{echo reply}) e
+para traçar e descobrir rotas.
+Há também um mecanismo de notificação de congestionamento, que não é empregado.
+
+\subsubsection{IPv6}
+
+A principal razão do seu desenvolvimento é a possibilidade de que em breve não se tenham mais faixas de IPv4 disponíveis.
+Assim uma das principais modificações é um novo endereço de 128 bits (mais que suficiente para muito tempo) que possui também possibilidade de endereçamento \emph{anycast}, ou seja, para um grupo de hosts.
+Além desta modificação alguns fatores complicados do IPv4 foram eliminados: a fragmentação, o checksum e a possibilidade de opções extras no cabeçalho.
+
+O cabeçalho IPv6 é de tamanho fixo de 40 bytes e o tamanho do pacote é a 40 mais o \emph{payload lenght} (16 bits).
+Opções extras podem ainda ser passadas, mas devem ser alocadas no payload e usa-se o campo \emph{next header} de 8 bits para apontar para elas.
+Normalmente este campo aponta para o protocolo para qual o payload será repassado (UDP, TCP, ICMP etc.).
+No caso de pacotes muito grandes para o enlace, ele são descartados e uma mensagem ICMP (há uma nova versão também deste protocolo) é enviada ao emissor.
+Tem-se um campo \emph{hop limit} (que é o uso prático do TTL do IPv4) alterado a cada roteador, mas já sem o recálculo do checksum, 
+que foi eliminado pela suposição que o protocolo superior o faz, assim como muitas vezes o frame de enlace de onde o datagrama veio.
+
+Há outras novidades para determinação de \emph{classe de tráfego} com 8 bits e um \emph{flow label} de 16 bits.
+Com eles seria possível estabelecer políticas de encaminhamento para pacotes a depender da classe e prioridade para certos fluxos.
+A forma como isto seria feito não foi efetivamente determinado.
+
+Um grande problema é como fazer a transição entre estas duas tecnologias. 
+Como os cabeçalhos são distintos, eles não podem coexistir sem complicações: mesmo que os roteadores sejam capazes de traduzir os cabeçalhos de uma versão para outra, alguns campos seriam perdidos ou inutilizados.
+A opção mais usada atualmente é o \emph{tunelamento} dos datagramas IPv6 no payload de datagramas IPv4 realizadas por roteadores que sabem lidar com as duas versões do protocolo.
+
+\subsubsection{Segurança sobre IP}
+
+Nesta seção, cita-se o \emph{IPsec} que é um protocolo que roda sobre IP e tem opções extra de segurança.
+Ele estabelece sessões entre hosts o que permite a encriptação (através de uma chave negociada na conexão) dos payloads dos datagramas,
+tem mecanismos extras de integridade de dados e permite a autenticação das origens.
+Isto é feito com uma camada acima do protocolo IP, que precisa coexistir em versões idênticas somente nos hosts finais, passando transparente pelos roteadores.
 
 
+\section{Algoritmos de roteamento}
+
+%TODO
 
 \section{Questões}
 
