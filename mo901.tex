@@ -1221,7 +1221,40 @@ Já na Internet tem-se interesse que o núcleo da rede seja simples (a ponto de po
 
 \section{Funcionamento dos roteadores}
 
-%TODO
+Os roteadores são nós da rede que tem função de fazer o \emph{forwarding} de pacotes, que passam pelos seguintes módulos:
+\begin{itemize}
+	\item Portas de entrada: realizam as funções das camadas de enlace e física, obtendo um pacote de camada de rede, do qual se extrai o cabeçalho
+	\item Processador de roteamento: mantém as tabelas de \emph{forwarding}, participando de protocolos de roteamento e de funções de manutenção da rede
+	\item \emph{Switching fabric}: envia o pacote para a porta de saída indicada na tabela de \emph{forwarding}
+	\item Portas de saída: recebem um pacote que é encapsulado em um frame da camada de enlace e enviado para o próximo nó. Neles normalmente se encontram as filas e nelas que ocorre a maior parte dos descartes de pacotes
+\end{itemize}
+
+Os roteadores antigos (ou atuais para redes de menor velocidade) funcionam de forma similar a um computador,
+tendo interfaces de entrada e de saída ``comuns'' e um barramento interno com memória e um processador. 
+Um pacote que chegasse era copiado para a memória, analisado pelo processador e copiado para outra região de memória, associada a uma porta de saída.
+Este modelo é chamado de \emph{switching} via memória, e é fácil notar que somente um pacote pode ser redirecionado por vez.
+
+Roteadores mais modernos já possuem um processador associado a cada interface, responsáveis por processar pacotes provenientes do seu enlace,
+com base em cópias locais da tabela de \emph{forwarding}.
+A função de roteamento e atualização das tabelas é realizada por uma outra unidade, separando as tarefas de maneira mais eficiente.
+
+A questão então é como enviar os pacotes da porta de chegada para a de saída calculada por um processador.
+Uma abordagem é via \emph{bus}, onde um barramento é compartilhado por todas as portas e passa a ser o maior gargalo para a velocidade do equipamento.
+É possível também usar múltiplos barramentos internos, gerando uma ``rede'' dentro do roteador com vários caminhos entre portas e inclusive certos protocolos internos e bem simples de roteamento.
+
+Em todos estes casos é interessante notar que as consultas à tabela de roteamento devem ser realizadas muito rapidamente.
+A limitação dos processadores e de métodos eficientes de consulta foram, por grande tempo, um empecilho para a comutação por pacotes, 
+que possui endereços maiores que os labels dos circuitos virtuais.
+
+A outra questão importante é a análise de como ocorre o enfileiramento de pacotes.
+Se o tráfego de chegada for maior que a capacidade de processamento, consulta às tabelas e repasse à porta destino, pacotes podem ficar enfileirados nas portas de entrada, que precisam de alguma forma de buffer.
+Se a limitação for a capacidade dos enlaces de saída, usar os mesmos buffers pode levar a um fenômeno de \emph{head-of-line (HOL) block}.
+Ele ocorre quando pacotes cujas portas de destino estão livres ficam enfileirados pois um pacote à sua frente na fila de entrada está bloqueado pela indisponibilidade de sua porta de saída.
+Assim, o enfileiramento por excesso de tráfego normalmente se dá nas portas de saída.
+
+É importante notar que é neste enfileiramento que se implementam as políticas de qualidade de serviço e o controle de congestionamento, caso existam.
+Assim, são necessários algoritmos para decidir (a) quais pacotes serão descartados quando não houver mais espaço em buffer (e, possivelmente, sinalizar o seu descarte, o congestionamento) 
+e (b) quais pacotes da fila serão transmitidos quando o enlace de saída estiver livre (ou seja, que fluxos terão maior prioridade).
 
 \section{Protocolo IP}
 
@@ -1351,7 +1384,56 @@ Isto é feito com uma camada acima do protocolo IP, que precisa coexistir em vers
 
 \section{Algoritmos de roteamento}
 
-%TODO
+Esta seção lida com os algoritmos básicos para o cálculo das tabelas de roteamento em uma rede.
+Supõe-se que cada host está conectado a alguma rede de acesso e possui um roteador mais vizinho, a partir do qual o tráfego para fora desta subrede sai e por onde ele vem.
+Assim, o roteamento entre dois hosts se resume ao cálculo da ``melhor'' rota entre estes um roteador de partida a um de destino.
+
+Esta rede de roteadores é modelada como um grafo onde às arestas são associados custos, cuja significância pode ser bastante variada.
+Ele pode estar relacionado ao tempo de propagação, o seu custo econômico, à políticas administrativas etc.
+Nesta modelagem, o roteamento vai consistir em obter um caminho entre dois roteadores cujo custos das arestas intermediárias sejam mínimos.
+
+Os métodos empregados podem ser classificados por suas características, por requerem conhecimento global ou local da rede, 
+por serem dinâmicos ou estáticos e sendo sensíveis ao tráfego ou não.
+
+\subsection{Algoritmo de Estado de Enlaces}
+
+Este algoritmo calcula os caminhos a partir do conhecimento dos custos de todas as arestas do grafo de comunicação (é \emph{global}).
+Cada roteador têm o conhecimento dos custos dos enlaces a eles conectados e os distribui a todos os demais roteadores da rede.
+Esta distribuição é feita via broadcast quando se nota uma modificação de algum dos custos e/ou com certa periodicidade.
+
+Com a chegada de novos custos e/ou novas arestas, as distâncias mínimas são computadas a partir do algoritmo de Dijkstra.
+Para cada destino $v$ mantém-se o custo mínimo para alcançá-lo e nó $u$ que é o último roteador no caminho até $v$.
+O caminho completo pode ser obtido através da consulta dos dados referentes a $u$ e assim recursivamente até que o nó seja algum vizinho do nó de origem.
+
+Um problema desta abordagem advém dela ser sensível ao tráfego, o que pode gerar muita oscilação de rotas.
+Isto ocorre quando vários caminhos mínimos compartilham um mesmo enlace, cujo uso excessivo vai fazer com que seu custo aumente.
+Este novo custo vai ser divulgado e várias rotas evitarão este enlace, sobrecarregando um outro enlace.
+É difícil evitar este problema, que advém de uma natural ``sincronização'' da computação de rotas.
+
+\subsection{Algoritmo de Vetor de distância}
+
+Este outro algoritmo depende somente de \emph{informação local} e não é sensível ao tráfego, além de ser assíncrono e iterativo.
+Inicialmente, cada roteador calcula os custos para os vizinhos e os custos para os demais roteadores é tido como infinito.
+Estes custos são repassado para os vizinhos, que obtém então o menor custo para nós a dois passos de comunicação, assim como o enlace por onde ele é obtido.
+Assim, as informações locais são disseminadas iterativamente pela rede sempre, através do envio para os vizinhos dos novos valores conhecidos sempre que eles são alterados.
+
+Após um certo número de iterações o algoritmo converge e novas atualizações são geradas somente quando há mudança de custos de links.
+Se diz que para este algoritmo ``boas notícias'' correm rápido, pois a redução significativa do custo de um link é rapidamente disseminada pela rede.
+Por outro lado, se o custo de um link aumenta (ou o link cai) o comportamento é complicado, havendo grandes possibilidades da ocorrência de loops de roteamento.
+
+Um roteador $v$ que nota uma queda ou o aumento do custo de um link para um roteador $u$, 
+irá verificar quais dos seus vizinhos divulga um custo mais vantajoso, digamos $w$.
+A questão é quando esta rota divulgada por $w$ para $u$ passava por $v$ (e pelo link afetado). 
+$v$ irá atualizar seu custo para $u$ e divulgá-lo. $w$ irá notar a atulização e aumentará seu custo para $u$, pois ele passava por $v$.
+Isto irá se repetir por tempo indeterminado até que que uma nova rota efetivamente melhor pareça mais atraente.
+Enquanto isto não ocorrer, $v$ irá repassar para $w$ os pacotes destinados a $v$ e $w$ irá lhe devolver o mesmo pacote (pois a melhor rota para $u$ passa por $v$) e tem-se um loop.
+
+Este problema é chamado de \emph{contagem até o infinito} e para ser resolvido é necessário que não somente o custo, 
+mas também dados sobre a rota que resulta nele sejam disseminados para os vizinhos.
+
+\subsection{Roteamento hierárquico}
+
+
 
 \section{Questões}
 
