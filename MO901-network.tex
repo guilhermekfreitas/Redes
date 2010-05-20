@@ -1,0 +1,361 @@
+\chapter{Camada de Rede}
+
+Esta é uma das camadas mais importantes e mais desafiadoras da Internet.
+O seu papel é realizar a entrega de pacotes entre dois hosts quaisquer, 
+através do \emph{roteamento} e \emph{forwarding} dos pacotes nos nós intermediários da rede.
+Assim, esta é uma das camadas presentes no core da rede.
+
+O \emph{forwarding} é a operação realizada pelos \emph{packet switches}, recebendo pacotes em uma interface (enviadas por um nó através de um enlace) 
+e enviando-os por outra interface (outro enlace, levando-os a outro nó da rede).
+Esta decisão é feita através de uma busca em uma \emph{forwarding table} pela interface de entrada + bits obtidos do cabeçalho do pacote.
+Se tal cabeçalho é o da camada de rede tem-se um \emph{roteador}.
+
+Já o \emph{roteamento} é um cálculo de um caminho entre dois hosts quaisquer na rede, ou seja, a definição de uma série de nós intermediários que devem ser passados por um pacote para alcançar o destino.
+Em cada um destes nós, ocorre o \emph{forwarding} segundo uma tabela que é atualizada através de um protocolo de roteamento.
+
+Em alguns modelos de rede (que não incluem o modelo da Internet) esta camada também é responsável por realizar a \emph{conection setup}.
+Ela consiste na reserva de recursos nos nós intermediários da rede antes que a comunicação propriamente dita (a troca de dados) ocorra.
+
+\section{Modelos de serviço}
+
+É possível que a camada de rede forneça \emph{garantias de entrega}: pacotes cheguem e possivelmente dentro de um período de tempo definido.
+Além disto, é possível que se tenha \emph{entrega ordenada} e \emph{garantias de segurança} como encriptação, integridade de dados e autenticação da origem.
+É possível estabelecer outras formas mais flexíveis de qualidade de transmissão, como \emph{jitter máximo} e \emph{taxa de transmissão mínima}.
+
+A Internet usa um modelo de \emph{best-effort} que não garante nada disto.
+Nas redes \emph{ATM} tem-se várias garantias, divididades em duas classes:
+
+\paragraph{Constant Bit Rate} Interessante para tráfego telefônico e multimídia. Há reserva de recursos e de uma taxa fixa de transmissão. 
+Há limites aceitáveis de jitter e de perda ou atraso.
+Antes das transmissões as conexões devem ser iniciadas e tais valores são negociados com a rede ATM.
+Não há congestionamento.
+
+\paragraph{Avaliable Bit Rate} Modo mais flexível, onde se garante uma taxa mínima de transmissão 
+e caso haja recursos disponíveis, a transmissão pode usar maior banda.
+A entrega é ordenada, podem haver perdas e o controle de congestionamento é realizado pela camada de rede, com células especiais de controle.
+
+\subsection{Circuitos Virtuais}
+
+É o modelo de transporte na camada de rede que oferece uma conexão entre dois hosts na rede.
+Assim, antes do envio de dados há uma etapa de inicialização.
+Dado o endereço do destinatário calcula-se o caminho (uma série de enlaces e roteadores) que são informados da conexão através de mensagens de sinalização.
+
+Cada roteador recebe uma mensagem do tipo a partir de um enlace $a$ e com um identificador $CV_i$ os associa a um outro enlace $b$ e outro $CV_{i+1}$.
+Esta quádrula $a, CV_i, b, CV_{i+1}$ é armazenada na tabela de forwarding e mantida lá até que receba-se outra mensagem que encerre tal conexão.
+Assim, há uma transmissão entre os dois hosts interessados (ida e volta) que permite a configuração da rota (através de cada forward)
+e uma possível negociação e alocação dos recursos necessários.
+
+Durante o envio dos dados o mesmo caminho é sempre empregado. 
+Cada nó do percurso preenche o campo $CV$ especificado na tabela e o coloca na interface indicada, 
+sendo que os nós intermediários adicionalmente leem o cabeçalho do pacote para realizar a busca na tabela.
+
+\subsection{Comutação de Pacotes}
+
+Este é o modelo empregado pela Internet.
+Para enviar uma mensagem um host preenche um endereço (único na rede) no cabeçalho do pacote e o põem na rede.
+Não há o conceito de conexão, ou seja, o caminho não é previamente conhecido e nenhum recurso da rede é alocado.
+
+Cada roteador extrai o endereço e busca na tabela pela interface para onde ele deve redirecionado.
+Como os endereços podem ser grandes, emprega-se uma tabela de prefixos e procura-se pela \emph{longest prefix matching rule}.
+
+Nota-se que nenhum estado é mantido nos roteadores relacionado a determinada comunicação.
+Esta tabela, porém, é modificada por algoritmos de roteamento, mas com muito menos frequência que a tabela dos CVs.
+Isto também faz com que pacotes de um mesmo fluxo de dados tomem destinos diferentes, não havendo garantia de ordenação na entrega.
+
+\paragraph{}
+
+A distinção deste modelos advém de suas origens.
+Os CVs se originam na telefonia, cuja característica é ter-se um núcleo da rede complexo e uma borda ``burra''.
+Já na Internet tem-se interesse que o núcleo da rede seja simples (a ponto de possibilitar que várias tecnologias sejam usadas) e a complexidade se encontra na borda.
+
+\section{Funcionamento dos roteadores}
+
+Os roteadores são nós da rede que tem função de fazer o \emph{forwarding} de pacotes, que passam pelos seguintes módulos:
+\begin{itemize}
+	\item Portas de entrada: realizam as funções das camadas de enlace e física, obtendo um pacote de camada de rede, do qual se extrai o cabeçalho
+	\item Processador de roteamento: mantém as tabelas de \emph{forwarding}, participando de protocolos de roteamento e de funções de manutenção da rede
+	\item \emph{Switching fabric}: envia o pacote para a porta de saída indicada na tabela de \emph{forwarding}
+	\item Portas de saída: recebem um pacote que é encapsulado em um frame da camada de enlace e enviado para o próximo nó. Neles normalmente se encontram as filas e nelas que ocorre a maior parte dos descartes de pacotes
+\end{itemize}
+
+Os roteadores antigos (ou atuais para redes de menor velocidade) funcionam de forma similar a um computador,
+tendo interfaces de entrada e de saída ``comuns'' e um barramento interno com memória e um processador. 
+Um pacote que chegasse era copiado para a memória, analisado pelo processador e copiado para outra região de memória, associada a uma porta de saída.
+Este modelo é chamado de \emph{switching} via memória, e é fácil notar que somente um pacote pode ser redirecionado por vez.
+
+Roteadores mais modernos já possuem um processador associado a cada interface, responsáveis por processar pacotes provenientes do seu enlace,
+com base em cópias locais da tabela de \emph{forwarding}.
+A função de roteamento e atualização das tabelas é realizada por uma outra unidade, separando as tarefas de maneira mais eficiente.
+
+A questão então é como enviar os pacotes da porta de chegada para a de saída calculada por um processador.
+Uma abordagem é via \emph{bus}, onde um barramento é compartilhado por todas as portas e passa a ser o maior gargalo para a velocidade do equipamento.
+É possível também usar múltiplos barramentos internos, gerando uma ``rede'' dentro do roteador com vários caminhos entre portas e inclusive certos protocolos internos e bem simples de roteamento.
+
+Em todos estes casos é interessante notar que as consultas à tabela de roteamento devem ser realizadas muito rapidamente.
+A limitação dos processadores e de métodos eficientes de consulta foram, por grande tempo, um empecilho para a comutação por pacotes, 
+que possui endereços maiores que os labels dos circuitos virtuais.
+
+A outra questão importante é a análise de como ocorre o enfileiramento de pacotes.
+Se o tráfego de chegada for maior que a capacidade de processamento, consulta às tabelas e repasse à porta destino, pacotes podem ficar enfileirados nas portas de entrada, que precisam de alguma forma de buffer.
+Se a limitação for a capacidade dos enlaces de saída, usar os mesmos buffers pode levar a um fenômeno de \emph{head-of-line (HOL) block}.
+Ele ocorre quando pacotes cujas portas de destino estão livres ficam enfileirados pois um pacote à sua frente na fila de entrada está bloqueado pela indisponibilidade de sua porta de saída.
+Assim, o enfileiramento por excesso de tráfego normalmente se dá nas portas de saída.
+
+É importante notar que é neste enfileiramento que se implementam as políticas de qualidade de serviço e o controle de congestionamento, caso existam.
+Assim, são necessários algoritmos para decidir (a) quais pacotes serão descartados quando não houver mais espaço em buffer (e, possivelmente, sinalizar o seu descarte, o congestionamento) 
+e (b) quais pacotes da fila serão transmitidos quando o enlace de saída estiver livre (ou seja, que fluxos terão maior prioridade).
+
+\section{Protocolo IP}
+
+É resposável pelo endereçamento, formato e manipulação dos datagramas na Internet.
+Há duas versões atuais: o \emph{IPv4} mais utilizado e o \emph{IPv6} como uma nova proposta, já empregada em alguns nichos.
+
+O IP transporta os dados dentro de datagramas, cujo cabeçalho tem as informações necessárias para seu devido encaminhamento ao destino.
+Os primeiros campos são de versão do IP empregada (4 bits), o ``tipo de serviço'' (não muito empregado, com 8 bits) o tamanho do datagrama (16 bits) e o tamanho do cabeçalho (4 bits).
+Este tem tamanho mínimo de 20 bytes podendo ser extendido com palavras de 4 bytes com parâmetros extras.
+
+Dois campos importantes são o endereço de partida e o de destino, com 32 bits cada.
+Há também o campo \emph{TTL} ou tempo de vida, que é o número de hops que o pacote ainda pode percorrer (8 bits), um identificador da camada superior para onde o pacote deve ser repassado (8 bits) e um \emph{checksum do cabeçalho}, em complemento de dois em 16 bits.
+Este checksum é checado por cada roteador e recalculado, visto que o campo TTL é alterado. Isto é um pequeno gargalo.
+
+Outro conjunto de campos são relacionados à \emph{fragmentação} do pacote, que ocorre quando ele tem que passar por um enlace cujo frame é menor que o datagrama.
+Sabendo desta possibilidade, o emissor assinala um identificador de 16 bits ao pacote. 
+Ao fragmentá-lo, o roteador quebra o payload em valores múltiplos de 8 bytes cujo início é marcado no campo \emph{fragment offset} de 13 bits.
+Todos os fragmentos a menos do último tem um bit de \emph{flag} setado para 1.
+A remontagem do pacote só se dá no destino usando o \emph{id} do pacote, os \emph{offsets} e bits.
+Sendo remontado, ele é passo ao protocolo de destino, sendo normalmente descartando se um fragmento não chega.
+Esta política de fragmentação foi removida do \emph{IPv6} por conta do custo para os roteadores e a vulnerabilidade desta estratégia (falsos offsets, eternos fragmentos).
+
+\subsection{Endereçamento IPv4}
+
+Os endereços contém 32 bits, levando a $2^{32}$ (cerca de 4 bilhões) de endereços, apesar de várias faixas serem reservadas.
+Apesar dele ser um endereçador de hosts, cada \emph{interface} de algum equipamento de rede possui um endereço IPv4 próprio.
+Ele é formado por um prefixo de \emph{subnet} de bits mais significativos e os demais bits endereçam interfaces dentro de uma mesma subrede.
+Dentre estes bits menos significativos é possível definir outras subredes com outros prefixos, hierarquicamente.
+
+Assim, além de endereços IPv4 únicos tem-se \emph{endereços de redes} formados por um prefixo de $x$ bits e com os demais bits nulos.
+Estes $x$ bits são a máscara da (sub-)rede, que pode comportar $2^{32-x} - 2$ endereços IPv4 distintos.
+Com esta estrutura é possível \emph{agregar} endereços e reduzir o tamanho das tabelas de roteamento, 
+com um roteador divulgando o endereço da maior subrede ``abaixo'' dele.
+É possível, porém, que alguns endereços desta faixa ``abaixo'' dele não estejam sobre seu controle, 
+sendo divulgadas por outro roteador que as possuem com uma máscara $y < x$.
+Como o associação para o redirecionamento se dá pelo \emph{maior} prefixo, esta estratégia funciona.
+
+Esta forma de organização é chamada de \emph{Classes Interdomain Routing} ou \emph{CIDR}.
+Inicialmente tinha-se classes \emph{A,B,C} com máscaras \emph{8,16,24}, mas dado a imensa diferença de número de IPv4 associadas acabaram sendo flexibilizadas para máscaras de tamanhos arbitrários.
+
+Para finalizar, a unicidade destes endereços é regulamentada por uma organização chamada \emph{ICANN}, que é descentralizada entre outras organizações regionais.
+Ela é responsável por alocar faixas de IPs e também pela alocação de nomes DNS, neste caso na resolução de conflitos de nomes.
+
+\subsubsection{DHCP}
+
+O \emph{Domain Host Configuration Protocol} tem como principal objetivo automatizar a configuração de um endereço IP único dentro de uma subnet para os hosts.
+Além do endereço IP normalmente se configura a máscara de rede, o primeiro roteador (ou \emph{gateway}), o endereço do DNS local, dentre várias outras possibilidades.
+Um parâmetro importante é o \emph{lease-time}, que é a validade do endereço, o que permite ao servidor rehaver um endereço que foi fornecido e não é mais usado (e cujo host não ``devolveu'' antes de sair).
+Nota-se que com isto é possível atender não simultaneamente mais hosts do que os endereços disponíveis.
+
+Assim, um host ingressante irá enviar uma mensagem de \emph{discover} para a rede no endereço \emph{255.255.255.255} de broadcast e para a porta 67 UDP.
+A resposta será esperada no endereço \emph{0.0.0.0} (\emph{myself}) na porta 68 UDP e tem-se um ID de transação.
+Um servidor DHCP que receba a mensagem irá responder com um \emph{offer} com o mesmo ID em broadcast, adicionando o endereço IP sugerido e demais informações.
+O cliente que o receber responderá com um \emph{request} em broadcast, incrementando o ID incrementado e adicionando o endereço do servidor escolhido.
+Este responde em broadcast com um \emph{ack} e é finalizado o processo.
+Nota-se que tudo é feito em broadcast, pois podem haver vários servidores DHCP na rede: o cliente é livre de escolher o que mais lhe convir, 
+mas os demais também ter ciência desta escolha (caso contrário, podem pensar que alguma mensagem foi perdida!).
+
+\subsubsection{NAT}
+
+A quantidade e a forma com que os IPv4 foram distribuídos podem fazer com que eles sejam insuficientes em muitos casos para todos os hosts de uma rede.
+Além disto, há faixas do endereçamento IPv4 que são reservadas para ``redes privadas''.
+Elas claramente não são identificadores únicos na Internet, pois hosts em subredes distintas podem ter o mesmo IP,
+das faixas \emph{10.0.0.0/8}, \emph{172.16.0.0/12} e \emph{192.168.0.0/16}.
+
+Assim, uma solução para prover acesso à Internet para vários computadores de uma rede do tipo é o \emph{Network Address Translation}.
+Nela o roteador tem um IPv4 dito ``real'' em uma interface e uma rede privada em outra. 
+Toda esta rede é vista na Internet como um único endereço: o do roteador.
+
+O papel do roteador é fazer com que a troca de pacotes ocorra. Como os que estão na rede privada são clientes, eles abrem conexões TCP.
+Antes do roteamento, o roteador muda os campos de proveniência do pacote para seu endereço e a porta para uma porta sua qualque não alocada.
+Em uma \emph{tabela de tradução NAT} ele mantém o endereço e porta originais do cliente e o endereço e portas dele próprio com o qual ele sobrescreveu os campos do pacote original.
+Ao checar uma resposta, ele checa esta tabela, restaura os valores sobrescritos e tudo fica transparente ao cliente.
+
+O problema é quando o host ``atrás'' de um NAT é o servidor. 
+Neste caso, como ele não tem endereço único na rede ele é inalcançável: pacotes enviados para ele serão recebidos pelo roteador que não saberá o que fazer deles.
+As soluções para este problema são a \emph{connection reversal} onde o servidor contacta o cliente (fora do NAT), 
+configuração manual de uma associação ``inversa'' no roteador (com uma tabela de pós roteamento) 
+ou o protocolo \emph{UPnP} que negocia com o roteador esta associação de forma dinâmica.
+
+Enfim, o NAT é visto por muitos como um remendo aos problemas do IPv4. 
+Além destas limitações do host ficar ``invisível'' na Web, tem-se o limite de conexões que podem usar o NAT (são $2^{16}$ portas disponíveis no cabeçalho TCP) e toda a questão que portas são de camada de transporte para assignar processos, não para assignar hosts, que é uma solução crosslay etc.
+Por outro lado, a solução pode ser bem interessantes para redes onde se há dinamismos e somente clientes e não se quer comprar mais endereços para os novos hosts (como residências).
+E, finalmente, o NAT hoje é amplamente empregado e difundido.
+
+\subsubsection{Protocolo ICMP}
+
+O \emph{Internet Control Message Protocol} é considerado com parte do protocolo IP, sendo responsável pela sua sinalização de erros.
+Por outro lado, os pacotes ICMP são enviados no payload de um datagrama IP, assim como os segmentos TPC e UDP.
+
+Um pacote ICMP tem um campo de tipo e outro de código e contém os primeiros 8 bytes do cabeçalho do pacote IP que gerou o erro.
+Ele é empregado para sinalizar erros de construção de datagramas IP, erros encontrados no processamento do pacote no host de destino
+(porta inexistente, protocolo inexistente) e impossibilidade de entrega do pacote ao host ou rede destino, por eles serem inexistentes ou inalcançáveis.
+
+Além disto, ele retorna erro quando o TTL do pacote é zerado e tem funções de ping (\emph{echo request} e \emph{echo reply}) e
+para traçar e descobrir rotas.
+Há também um mecanismo de notificação de congestionamento, que não é empregado.
+
+\subsubsection{IPv6}
+
+A principal razão do seu desenvolvimento é a possibilidade de que em breve não se tenham mais faixas de IPv4 disponíveis.
+Assim uma das principais modificações é um novo endereço de 128 bits (mais que suficiente para muito tempo) que possui também possibilidade de endereçamento \emph{anycast}, ou seja, para um grupo de hosts.
+Além desta modificação alguns fatores complicados do IPv4 foram eliminados: a fragmentação, o checksum e a possibilidade de opções extras no cabeçalho.
+
+O cabeçalho IPv6 é de tamanho fixo de 40 bytes e o tamanho do pacote é a 40 mais o \emph{payload lenght} (16 bits).
+Opções extras podem ainda ser passadas, mas devem ser alocadas no payload e usa-se o campo \emph{next header} de 8 bits para apontar para elas.
+Normalmente este campo aponta para o protocolo para qual o payload será repassado (UDP, TCP, ICMP etc.).
+No caso de pacotes muito grandes para o enlace, ele são descartados e uma mensagem ICMP (há uma nova versão também deste protocolo) é enviada ao emissor.
+Tem-se um campo \emph{hop limit} (que é o uso prático do TTL do IPv4) alterado a cada roteador, mas já sem o recálculo do checksum, 
+que foi eliminado pela suposição que o protocolo superior o faz, assim como muitas vezes o frame de enlace de onde o datagrama veio.
+
+Há outras novidades para determinação de \emph{classe de tráfego} com 8 bits e um \emph{flow label} de 16 bits.
+Com eles seria possível estabelecer políticas de encaminhamento para pacotes a depender da classe e prioridade para certos fluxos.
+A forma como isto seria feito não foi efetivamente determinado.
+
+Um grande problema é como fazer a transição entre estas duas tecnologias. 
+Como os cabeçalhos são distintos, eles não podem coexistir sem complicações: mesmo que os roteadores sejam capazes de traduzir os cabeçalhos de uma versão para outra, alguns campos seriam perdidos ou inutilizados.
+A opção mais usada atualmente é o \emph{tunelamento} dos datagramas IPv6 no payload de datagramas IPv4 realizadas por roteadores que sabem lidar com as duas versões do protocolo.
+
+\subsubsection{Segurança sobre IP}
+
+Nesta seção, cita-se o \emph{IPsec} que é um protocolo que roda sobre IP e tem opções extra de segurança.
+Ele estabelece sessões entre hosts o que permite a encriptação (através de uma chave negociada na conexão) dos payloads dos datagramas,
+tem mecanismos extras de integridade de dados e permite a autenticação das origens.
+Isto é feito com uma camada acima do protocolo IP, que precisa coexistir em versões idênticas somente nos hosts finais, passando transparente pelos roteadores.
+
+
+\section{Algoritmos de roteamento}
+
+Esta seção lida com os algoritmos básicos para o cálculo das tabelas de roteamento em uma rede.
+Supõe-se que cada host está conectado a alguma rede de acesso e possui um roteador mais vizinho, a partir do qual o tráfego para fora desta subrede sai e por onde ele vem.
+Assim, o roteamento entre dois hosts se resume ao cálculo da ``melhor'' rota entre estes um roteador de partida a um de destino.
+
+Esta rede de roteadores é modelada como um grafo onde às arestas são associados custos, cuja significância pode ser bastante variada.
+Ele pode estar relacionado ao tempo de propagação, o seu custo econômico, à políticas administrativas etc.
+Nesta modelagem, o roteamento vai consistir em obter um caminho entre dois roteadores cujo custos das arestas intermediárias sejam mínimos.
+
+Os métodos empregados podem ser classificados por suas características, por requerem conhecimento global ou local da rede, 
+por serem dinâmicos ou estáticos e sendo sensíveis ao tráfego ou não.
+
+\subsection{Algoritmo de Estado de Enlaces}
+
+Este algoritmo calcula os caminhos a partir do conhecimento dos custos de todas as arestas do grafo de comunicação (é \emph{global}).
+Cada roteador têm o conhecimento dos custos dos enlaces a eles conectados e os distribui a todos os demais roteadores da rede.
+Esta distribuição é feita via broadcast quando se nota uma modificação de algum dos custos e/ou com certa periodicidade.
+
+Com a chegada de novos custos e/ou novas arestas, as distâncias mínimas são computadas a partir do algoritmo de Dijkstra.
+Para cada destino $v$ mantém-se o custo mínimo para alcançá-lo e nó $u$ que é o último roteador no caminho até $v$.
+O caminho completo pode ser obtido através da consulta dos dados referentes a $u$ e assim recursivamente até que o nó seja algum vizinho do nó de origem.
+
+Um problema desta abordagem advém dela ser sensível ao tráfego, o que pode gerar muita oscilação de rotas.
+Isto ocorre quando vários caminhos mínimos compartilham um mesmo enlace, cujo uso excessivo vai fazer com que seu custo aumente.
+Este novo custo vai ser divulgado e várias rotas evitarão este enlace, sobrecarregando um outro enlace.
+É difícil evitar este problema, que advém de uma natural ``sincronização'' da computação de rotas.
+
+\subsection{Algoritmo de Vetor de distância}
+
+Este outro algoritmo depende somente de \emph{informação local} e não é sensível ao tráfego, além de ser assíncrono e iterativo.
+Inicialmente, cada roteador calcula os custos para os vizinhos e os custos para os demais roteadores é tido como infinito.
+Estes custos são repassado para os vizinhos, que obtém então o menor custo para nós a dois passos de comunicação, assim como o enlace por onde ele é obtido.
+Assim, as informações locais são disseminadas iterativamente pela rede sempre, através do envio para os vizinhos dos novos valores conhecidos sempre que eles são alterados.
+
+Após um certo número de iterações o algoritmo converge e novas atualizações são geradas somente quando há mudança de custos de links.
+Se diz que para este algoritmo ``boas notícias'' correm rápido, pois a redução significativa do custo de um link é rapidamente disseminada pela rede.
+Por outro lado, se o custo de um link aumenta (ou o link cai) o comportamento é complicado, havendo grandes possibilidades da ocorrência de loops de roteamento.
+
+Um roteador $v$ que nota uma queda ou o aumento do custo de um link para um roteador $u$, 
+irá verificar quais dos seus vizinhos divulga um custo mais vantajoso, digamos $w$.
+A questão é quando esta rota divulgada por $w$ para $u$ passava por $v$ (e pelo link afetado). 
+$v$ irá atualizar seu custo para $u$ e divulgá-lo. $w$ irá notar a atulização e aumentará seu custo para $u$, pois ele passava por $v$.
+Isto irá se repetir por tempo indeterminado até que que uma nova rota efetivamente melhor pareça mais atraente.
+Enquanto isto não ocorrer, $v$ irá repassar para $w$ os pacotes destinados a $v$ e $w$ irá lhe devolver o mesmo pacote (pois a melhor rota para $u$ passa por $v$) e tem-se um loop.
+
+Este problema é chamado de \emph{contagem até o infinito} e para ser resolvido é necessário que não somente o custo, 
+mas também dados sobre a rota que resulta nele sejam disseminados para os vizinhos.
+
+\paragraph{Comparações}
+
+Estes são os dois métodos principais (e quase únicos) de roteamento na Internet.
+Uma grande diferença entre eles é que no DV um nó comunica somente com seus vizinhos informações de roteamento para todos nós,
+enquando no LS um nó comunica para todos os nós da rede informação dos links a eles adjacentes.
+Assim, a complexidade teórica de mensagens para o LS é maior, assim como o custo para computar as melhores rotas, o que aliás tende a ocorrer sempre que houver mudança de custo de um link.
+Por outro lado, o DV sofre de problemas de contagem até o infinito (ou seja, convergência lenta) e possíveis loops de roteamento.
+Uma informação incorreta ou mal transmitida levará a erros na computação de algumas rotas no LS, 
+mas no DV o repasse uma informação incorreta de custos é facilmente propagada pela rede e pode causar problemas graves.
+
+\section{Roteamento na Internet}
+
+Na prática, por questões de escala e autonomia administrativa, os protocolos de roteamento não são executados por todos roteadores da Internet.
+Ao invés disto, um grupo de roteadores administrado por uma mesma organização é um \emph{Automnomous system (AS)}.
+A Internet então é vista como um conjunto de ASs, interligados entre si, e cujo roteamento de pacotes é realizado de forma hierárquica.
+
+Dentro de um AS emprega-se um protocolo de roteamento \emph{intra-AS}, escolhido pelos seus administradores 
+e que define rotas para subredes sob responsabilidade de outros roteadores do mesmo AS.
+Este roteamento é feito segundo princípios de eficiência e velocidade de comunicação até porque a topologia intra-AS pode ser conhecida por todos ou ser atualizada rapidamente.
+
+O outro nível de roteamento é o \emph{inter-AS}, que permite a comunicação entre redes associadas a diferentes ASs.
+Um AS possui um conjunto de \emph{gateway routers} que são conectados a outros ASs, ditos vizinhos.
+Através do protocolo inter-AS tais roteadores divulgam a seus vizinhos 
+uma série de prefixos que remetem às subredes sobre seu controle, tornando-as acessíveis na Internet.
+Além disto, um AS pode divulgar rotas conhecidas para outros ASs, fazendo com que o trafégo para estes outros ASs passe por eles.
+
+O protocolo inter-AS é único na Internet e seu funcionamento está mais relacionado a acordos comerciais para tráfego de dados do que a métricas de eficiência e velocidade de comunicação.
+Assim um AS que possua uma rota para um outro AS pode decidir por não divulgá-la, sendo atravessado por tráfego somente com destino a seus prefixos.
+Neste caso eles são conhecidos como \emph{AS stubs}.
+Outros ASs realizam também (ou principalmente) a conexão entre redes, sendo conhecidos como \emph{backbones}.
+Vale notar aqui que um ISP é formado por um AS ou por mais, e neste caso o intuíto é de eficiência ou melhor organização das rotas.
+
+\subsection{Protocolo Intra-AS: OSPF}
+
+É um protocolo de especificação livre, sendo um dos mais empregados em ASs de ISPs de mais alto nível.
+Ele é um protocolo de estado de enlaces, cujos custos são determinados pelos administradores e disseminados pela rede.
+O OSPF roda sobre o protocolo IP, tendo módulos para transmissão confiável, teste de links e roteadores vizinhos e
+permite a comunicação entre roteadores de forma encriptada e autenticada.
+Outras características são a possibilidade de várias rotas entre um mesmo par de hosts e mecanismos específicos para rotear mensagens de broadcast e multicast.
+
+Com o OSPF tem-se a possibilidade de realizar roteamento hierárquico intra-AS, através da divisão do AS em \emph{areas}.
+Cada área tem um ou mais \emph{roteadores de borda} que são responsáveis por roteador pacotes para fora da área.
+Uma área especial é chamada de \emph{backbone} e conecta os roteadores de bordas, que fazem o roteamento para dentro das suas áreas.
+No backbone também estão os gateways do AS e somente por ele que passa o tráfego destinado a outros ASs.
+
+\subsection{Protocolo Inter-AS: BGP}
+
+O \emph{Border Gateway Protocol} é o protocolo de roteamento inter-AS da Internet, tendo como principais papéis:
+\begin{itemize}
+	\item[i] Obter as redes atingíveis a partir dos ASs vizinhos
+	\item[ii] Propagar as redes antigíveis a partir de roteadores dentro do AS
+	\item[iii] Determinar rotas ``boas'' para as subredes, baseando-se em quesitos ``políticos'' (normalmente, econômicos)
+\end{itemize}
+
+A comunicação entre roteadores se dá por conexões TCP semi-permanentes na porta 179 entre roteadores.
+Roteadores de AS diferentes se conectam diretamente através do \emph{eBGP} 
+e roteadores de um mesmo AS se conectam (não necessariamente entre vizinhos) através do \emph{iBGP}.
+
+O roteamento inter-AS é realizado através dos identificadores únicos \emph{ASN} de cada AS, designados pela ICANN (que também associa endereços IPs).
+Vale notar que AS stubs que não são intermediários em rotas entre outros ASs não possuem tais identificadores.
+As mensagens de divulgação de rotas contém vários parâmetros, dos quais se destacam:
+\begin{itemize}
+	\item O prefixo, resultado da agregação de várias redes acessíveis por um AS
+	\item O \emph{AS-PATH} que é a sequência de ASs que formam a rota, empregados no roteamento inter-AS realizado pelo \emph{eBGP}
+	\item O \emph{NEXT-HOP} que indica o endereço da interface de saída de um gateway, empregada pelo roteamento intra-AS realizado pelo \emph{iBGP}
+\end{itemize}
+
+Ao receber uma divulgação do tipo, um roteador decidirá se irá incorporá-la, através de uma \emph{política de importação}.
+O primeiro parâmetro analizado é político/econômico, determinado manualmente, seguido do tamanho do caminho e da distância para o next hop.
+
+\paragraph{}
+Assim, em cada roteador agem dois protocolos distintos de roteamento: o OSPF para destinos intra-AS e o BGP para destinos em outros ASs.
+
+Uma rota é divulgada por um AS para seus vizinhos via eBGP, que possivelmente as repassa aos próximos vizinhos.
+Via iBGP o gateway repassa as rotas para destinos externos para os nós internos do AS. 
+Estes irão preencher suas tabelas tendo como rota para o destino externo a rota que leva ao gateway correspondente, indicado pelo NEXT-HOP da mensagem.
+Havendo duas possibilidades distintas de rotas para um mesmo destino emprega-se a estratégia \emph{hot potato}, 
+que escolhe como rota preferencial aquela advinda do roteador cujo custo intra-AS de roteamento seja mínimo.
+

@@ -1,0 +1,381 @@
+\chapter{Questões}
+
+\section{Capítulo 1}
+
+\subsection{Q4}
+Quais são os dois tipos de serviços de transporte que a Internet provê às suas aplicações? Cite algumas características de cada um destes serviços
+
+Um é baseado em conexão e outro não. 
+O primeiro provê entrega confiável, ordenada, controle de fluxo e de congestionamento. 
+A outra não provê nenhuma garantia de entrega, mas, por outro lado, não limita o taxa de envio nem tem o overhead de conexão e informações.
+
+\subsection{Q5}
+Afirma-se que controle de fluxo e controle de congestionamento são equivalentes. Isso é válido para o serviço orientado para conexão da Internet? Os objetivos do controle de fluxo e do controle de congestionamento são os mesmos?
+
+Não. O controle de fluxo visa evitar que um emissor envie dados a uma taxa maior que o destino pode aceitar e processar.
+O de congestionamento visa evitar que a rede fique sobrecarregada de dados, inviabilizando a troca de dados e disperdiçando os recursos da rede.
+
+\paragraph{Q7}
+Qual é a vantagem de uma rede de comutação de circuitos em relação a uma de comutação de pacotes? Quais são as vantagens da TDM sobre a FDM em uma rede de comutação de circuitos?
+
+As vantagens das redes comutadas por circuito são as garantias dadas à transmissão de dados. 
+Como antes da transmissão são alocados recursos nos nós intermediários, tem-se uma taxa garantida de transmissão e atrasos controlados.
+Assim, a priori, toda a transmissão se dá sem jitter, com atraso constante e a taxas pré-estabelecidas.
+
+A vantagem do TDM é fornecer a conexão a totalidade da taxa de transmissão restrita a um intervalo, enquando na FDM tem-se uma taxa limitada durante o tempo todo.
+
+\paragraph{Q9}
+Suponha que exista exatamente um comutador de pacotes entre um computador de origem e um de destino. As taxas de transmissão entre a máquina de origem e a máquina de destino são $R_1$ e $R_2$, respectivamente. Admitindo que um roteador use comutação de apcotes do tipo armazena-e-reenvia, qual é o atraso total fim-a-fim para enviar um pacote de comprimento $L$? (Desconsidere a formação de fila, atraso de propagação e atraso de processamento.)
+
+O pacote é enviado a uma taxa $R_1$ pelo primeiro enlace. Ele então, é armazenado no comutador, o que leva $L/R_1$ segundos.
+Passado este tempo, o pacote é enviado pelo segundo link, chegando por completo ao destino em $L/R_2$ segundos.
+Assim, o atraso total é de $L(1/R_1 + 1/R_2)$.
+
+\paragraph{Q11}
+Suponha que você esteja desenvolvendo o padrão para um novo tipo de rede de comutação de pacotes e precisa decidir se seu rede usará CVs ou roteamento de datagramas. Quais são os prós e os contras da utilização de CVs?
+
+No roteamento por datagramas, cada pacote deve conter o endereço de destino, que sendo único, é mais extenso que somente o CV, que é o identificador da conexão.
+Assim o tempo de processamento a cada nó tende a ser menor empregando-se CVs, assim como o tamanho dos cabeçalhos dos pacotes.
+
+Por outro lado, antes de enviar o pacote será necessária uma operação anterior que faça a descoberta da rota entre emitente e destinatário e que preencha as tabelas de cada comutador intermediário.
+Neste caso, estes sinais para tal transação terão que conter, de alguma forma, o endereço único do emitente e receptor.
+Assim, mesmo empregando CVs haverá um processamento inicial que depende de informações de roteamento.
+Se a transmissão for restrita a poucos pacotes, este esforço e atraso iniciais podem passar a ser relevantes, tornando esta abordagem desvantajosa.
+
+\paragraph{Q12}
+Cite seis tecnologias de acesso. Classifique cada uma delas nas categorias acesso residencial, acesso coorporativo ou acesso móvel.
+
+Há duas tecnologias que empregam a infra-estrutura telefônica existente, sendo prioritariamente empregadas em acesso residencial: a DSL e a dial-up.
+Outra opção para residências é a internet a cabo, que aproveita a infra-estrutura existente para as televisões por assinatura.
+
+O acesso corporativo, pode empregar estes métodos também, mas o custo/benefício seria questionável.
+Normalmente eles preferirão links dedicados de comunicação.
+Apesar de poder ser usada também para acesso residencial, redes de acesso empregando fibras ópticas são uma alternativa para coorporações.
+
+As principais tecnologias de acesso móvel são as WLANs e as redes celulares.
+As primeiras são redes sem fio de curto alcance, contendo uma antena fixa que se conecta à rede cabeda, que normalmente emprega outra tecnologia.
+As redes celulares empregam a infra-estrutura para telefonia móvel, ou seja, as antenas que dão cobertura à células de grande extensão.
+O mesmo sinal empregado para a comunicação e troca de mensagens de texto pode ser empregada para transporte de dados, ou seja, para acesso à Web.
+Apesar de oferecer taxas ainda reduzidas de transmissão, a tecnologia 3G e possíveis novidades tendem a aumentar a largura de banda desta opção.
+
+Dentro de coorporações a tecnlogia predominante é a Ethernet. Ela é uma arquitetura escalável e que permite um acesso em altas velocidades a recursos locais (dentro da mesma rede) e a roteadores que comunicam a rede com o restante da Internet.
+
+
+\paragraph{Q18}
+Modens discados, HFC e ADSL são usados para acesso residencial. Para cada uma dessas tecnologias de acesso, cite uma faixa de taxas de transmissão e comente se a largura de banda é compartilhada ou dedicada.
+
+O acesso dial-up é o que oferece menor velocidade de acesso, sendo limitado a 56kbps, que á taxa máxima que pode ser transferia nos 4Khz de largura de banda da conexão telefônica (o mais que suficiente para voz, porém).
+As conexões são dedicadas e empregam todo o canal, impedindo que o telefone seja empregado simultaneamente.
+
+A ADSL emprega também as linhas telefônicas, mas ao contrário da dial-up, emprega uma faixa de frequência maior, tendo canais para voz (os mesmos 4Khz para o telefone), upstream e downstream, sendo superior a taxa de downstream.
+As limitações de velocidade da técnica estão diretamente à distância das casas para as centrais telefônicas regionais. 
+Com esta tecnologia consegue-se velocidades entre algumas centenas de kbps até 3,6,8 Mbps na maioria das localidades e a largura de banda é dedicada (pois usa a mesma infra-estrutura telefônica, exclusiva para cada residência.
+
+Vale lembrar que em ambos casos as várias conexões são multiplexadas nas centrais telefônicas, mas espera-se que a banda prometida seja mantida nesta operação.
+
+O acesso HFC final é feito através de cabos coaxiais, que ligam várias casas à uma central regional. Pelas características da tecnologia, o canal é compartilhado, assim como a banda.
+Chegando a tais estações, o tráfego é enviado via fibra ótica às centrais (ou a outras regionais de hierarquia superior), realizando a multiplexação dos sinais dos diversos cabos. Novamente, espera-se que esta operação não cause perdas de velocidade.
+OS acessos nesta mobilidade oferecem atualmente taxas bem variadas, desde algumas centenas de kbps até 6, 8 ou 10 Mbps.
+
+\paragraph{Q19}
+Considere o envio de um pacote de uma máquina de origem a uma de destino por uma rota fixa. Relacione os componentes do atraso que formam o atraso fim-a-fim. Quais deles são constantes e quais deles são variáveis?
+
+A rota é formada por uma série de nós intermediários e associa-se o atraso a cada nó. O primeiro atraso é associado à tecnologia store-and-forward empregada. Ele é inversamente proporcional a taxa de transmissão do link, que no exemplo será constante.
+O segundo atraso tem é o processamento dos nós, que inclui a verificação da consistência dos pacotes, a extração do cabeçalho e a computação do link de saída a ser empregado. Este atraso é constante e nele costuma pesar mais o cálculo do link de saída.
+Outro atraso é o de propagação, que depende da velocidade da luz no meio empregado para transmissão, ou seja, dos links, sendo constante no exemplo.
+
+O único atraso variável é o de enfileiramento. 
+Este é o tempo que o pacote permanece retido nos nós aguardando a liberação do link de saída que deve ser empregado. Este tempo é o restante para que o envio do pacote que ocupa o link seja encerrado mais o tempo empregado par enviar todos os pacotes que se encontrem enfileirados assim como o em questão e que tenham maior prioridade de uso do link (normalmente por terem chegando antes).
+
+\paragraph{Q21}
+Quais são as cinco camadas da pilha do protocolo da Internet? Quais as principais responsabilidades de cada uma dessas camadas?
+
+A camada superior é a de aplicação. Ela contém protocolos padrões da Internet, empregados pelas aplicações tanto para interagir com os serviços disponibilizados na Internet (como cliente) como para serví-los (como servidor).
+
+Tem-se depois a camada de transporte, que presta serviço à de aplicação, abstraindo fatores associados à transmissão de dados.
+Ela contém prioritariamente dois protocolos, o TCP e o UDP. Assim como estes, os protocolos desta camada diferem nas garantias que são dadas à camada superior quanto a transmissão de dados.
+Dentre elas tem-se a entrega garantida, entrega em ordem, consistência dos dados.
+Além destas garantias, a camada de transporte é responsável por permitir que várias aplicações possam usar simultaneamente a rede, como se a estivessem usando exclusivamente.
+
+A próxima camada é a de rede, que é responsável por abstrair, para a camada de transporte todos os passos intermediários que um pacote deve percorrer antes de chegar ao destino.
+Enquanto as camadas acima lidam com transmissões fim-a-fim entre hosts, esta camada é responsável por realizar o cálculos de rotas e realizar a comutação de pacotes tanto nos hosts como nos nós intermediários.
+Na Internet este é o papel do protocolo IP, que associa um endereço único a cada host na Internet e permite que os pacotes sejam enviados pelos links corretos, sendo comutados para o próximo link na rota calculada a cada passo, chegando ao destino final.
+Nota-se que nesta camada não tem-se a preocupação semântica sobre os dados: não sabe-se de que aplicação eles vem e não se preocupa-se com possíveis perdas, duplicatas, desordenações etc.
+
+Abaixo dela tem-se a camada de enlace. Ela é responsável por realizar a transmissão de dados entre cada par de nós da rede, tendo protocolos específicos para uso do meio, detecção e possível correção de erros. Desta forma, ao contrário das outras, os protocolos desta camada são específicos para a(s) tecnologia(s) de rede empregadas por cada equipamento da rede.
+
+Finalmente tem-se a camada física, que é responsável pelo efetivo envio de bits entre dois equipamentos (nós ou hosts) ligados por um link de conexão.
+Assim como a de enlace, esta camada é implementada nos dispositivos de rede empregados, que se ligam diretamente ao link de transmissão.
+
+\paragraph{Questão 23}
+Que camadas da pilha do protocolo da Internet um roteador implementa? Que camadas um comutador de camada de enlace implementa? Que camadas um sistema final implementa?
+
+Um roteador implementa todas as camadas que não são fim-a-fim, ou seja, a de rede, enlace e física.
+
+Um comutador de enlace não realiza comutação de pacotes nem cálculo de rotas, empregando apenas as camadas de enlace e rede.
+
+Os hosts implementam todas as camadas.
+
+\subsection{Problema 6}
+
+Este problema elementar começa a explorar atrasos de propagação e de transmissão, dois conceitos centrais em redes de computadores. Considere dois computadores, A e B, conectados por um único enlace de taxa $R$ bps. Suponha que esses computadores estejam separados por $m$ metros e que a velocidade de propagação ao longo do enlace seja de $s$ metros/segundo. O computador A tem de enviar um pacote de $L$ bits ao computador B.
+
+\paragraph{a.} Expresso o atraso de propagação $d_{prop}$ em termos de $m$ e $s$.
+
+$d_{prop} = m/s$ segundos.
+
+\paragraph{b.} Determine o tempo de transmissão do pacote $d_{trans}$, em termos de $L$ e $R$
+
+$d_{trans} = L/R$ em segundos, pois $L$ é em bist e $R$ em bits/segundos.
+
+\paragraph{c.} Ignorando os atrasos de processamento e de fila, obtenha uma expressão para o atraso fim-a-fim
+
+$d = L/R + m/s$, ou seja, a soma dos dois anteriores.
+
+\paragraph{d.} Suponha que o computador A comece a transmitir o pacote no instante $t = 0$. No instante $t = d_{trans}$, onde estará o último bit do pacote?
+
+O primeiro bit do pacote chega em $d = d_{prop}$ a B. O último bit estará no link de transmissão se $d_{prop} * R \geq L$. Caso contrário, estará ainda em algum buffer do host A.
+
+\paragraph{e.} Suponha que $d_{prop}$ seja maior que $d_{trans}$. Onde estará o primeiro bit do pacote no instante $t = d_{trans}$?
+
+Atravessando o link.
+
+\paragraph{f.} Suponha que $d_{prop}$ seja menor que $d_{trans}$. Onde estará o primeiro bit do pacote no instante $t = d_{trans}$?
+
+No buffer do host B.
+
+\paragraph{g.} Suponha $s = 2,5 . 10^8$, $L = 100$ bits e $R = 28$ kbps. Encontre a distância $m$ de forma que $d_{prop}$ seja igual a $d_{trans}$.
+
+$m/s = L/R \implies m = s*L/R = 25.10^9 / 28.10^3 < 10^6 m$
+
+\subsection{Problema 14}
+Suponha que dois computadores, A e B, estejam separados a uma distância de 10 mil quilômetros e conectados por um enlace direto de $R = 1$ Mbps. Suponha que a velocidade de propagação pelo enlace seja de $2.5 . 10^8$ metros por segundo.
+
+\paragraph{a.} Calcule o produto largura de banda-atraso $R . t_{prop}$
+
+$10^6 . 10. 10^6 / 2.5 . 10^8 = 4 . 10^4$
+
+\paragraph{b.} Considere o envio de um arquivo de 400 mil bits do computador A para o computador B. Suponha que o arquivo seja enviado continuamente, como se fosse uma única grande mensagem. Qual é o número máximo de bits que está no enlace a qualquer dado instante?
+
+Seja um bit qualquer, ele demora $4 . 10^{-2}$ segundos para chegar a B. Neste tempo, a quantidade de bits que entram no link é proporcional a sua taxa de transmissão.
+Assim, há $10^6 * 4 . 10^{-2}$ no canal, ou seja, $4 . 10^4$ bits, que é o produto banda-atraso.
+
+\letra{c} Interprete o produto largura de banda-atraso.
+
+Feito.
+
+\letra{d} Qual é o comprimento (em metros) de um bit no enlace? É maior do que a de um campo de futebol?
+
+O máximo de bits que podem estar simultaneamente no enlace é $4. 10^4$. Supondo ``comprimento uniforme'', ele será de $10 . 10^6 / 4.10^4 = 2,5.10^2 = 250m$. São mais de dois campos de futebol de $100m$.
+
+\letra{e} Derive uma expressão geral para o comprimento de um bit em termos da velocidade de propagação $s$, da velocidade de transmissão $R$ e do comprimento do enlace $m$.
+
+$c = m/(t_{prop} * R) = m(m/s * R) = s/R$.
+
+\subsection{Problema 16}
+Considere o problema 14, mas agora com um enlace de $R = 1$ Gbps.
+\letra{a} Calcule o produto largura de banda-atraso, $R . t_{prop}$
+
+$10^9 * 10.10^6 / 2,5.10^8 = 10^9 * 4.10^{-2} = 4.10^7$ bits.
+
+\letra{b} Considere o envio de um arquivo de 400 mil bits no computador A para o computador B. Suponha que o arquivo seja enviado continuamente, como se fosse uma única grande mensagem. Qual será o número máximo de bits que estará no enlace a qualquer dado instante?
+
+Como $4.10^7 > 400.10^3 = 4.10^5$, todo arquivo estará no enlace.
+
+\letra{c} Qual é o comprimento (em metros) de um bit no enlace?
+
+$ c= s/R = 2,5.10^8/10^9 = 2,5.10^{-1} = 25cm$
+
+\subsection{Problema 17}
+Novamente com referência ao problema 14.
+\letra{a} Quanto tempo demora para enviar o arquivo, admitindo que ele seja enviado continuamente?
+
+$L/R = 400.10^3/10^6 = 400.10^{-3} = 0,4 = t_{trans}$ e $t_{prop} = 10.10^6 / 2,5.10^8 = 4.10^{-2} = 0,04$.
+O atraso será $t_{trans} + t_{prop} = 0,44$ segundos.
+
+\letra{b} Suponha agora que o arquivo seja fragmentado em dez pacotes e que cada pacote contenha 40 mil bits. Suponha que cada pacote seja verificado pelo receptor e que o tempo de transmissão de uma verificação de pacote seja desprezível. Finalmente, admita que o emisso não possa enviar um pacote até que o anterior tenha sido reconhecido. Quanto tempo demorará para enviar o arquivo?
+
+Assim serão 10 pacotes de 40 mil bits. Cada pacote tem atraso de $L/R + m/s = 40.10^3/10^6 + 10.10^6/2,5.10^8 = 40.10^{-3} + 4.10^{-2} = 80.10^{-3}$.
+Além disto, cada confirmação demora $40.10^{-2}$ para chegar, levando a um atraso total de $10*(120.10^{-3}) = 1,2$ segundos.
+
+\letra{c} Compare os resultados de `a' e `b'.
+
+A transmissão por fluxo contínuo é muito mais rápida.
+
+\subsection{Problema 20}
+Em redes modernas de comutação de pacotes, a máquina de origem segmenta mensagens longas de camada de aplicação (por exemplo, uma imagem ou um arquivo de música) em pacotes menores e os envia pela rede. A máquina destinatária, então, monta novamente os pacotes restaurando a mensagem original. Denominamos esse processo \emph{segmentação de mensagem}. A Figura 1.21 ilustra o transporte fim-a-fim de uma mensagem e sem segmentação. Considere que uma mensagem de $7,5 . 10^6$ bits de comprimento tenha de ser enviada da origem ao destino da Figura 1.32. Suponha que a velocidade de cada enlace seja 1,5 Mbps. Ignore atrasos de propagação, de fila e de processamento.
+\letra{a} Considero o envio da mensagem da origem ao destino \emph{sem} segmentação. Quanto tempo essa mensagem levará para ir da máquina de origem até o primeiro comutador de pacotes? Tendo em mente que cada comutador usa comutação de pacotes do tipo armazena-e-reenvia, qual é o tempo total para levar a mensagem da máquina de origem à máquina de destino?
+
+O tempo até o primeiro comutador é $t = 7,5. 10^6 / 1,5 . 10^6 = 5s$. Para chegar ao destino, o tempo é o triplo pois deve-se passar por outro comutador e chegar ao destino final.
+
+\letra{b} Agora suponha que a mensagem seja segmentada em 5 mil pacotes, cada um com 1.500 bits de comprimento. Quanto tempo demorará para o primeiro pacote ir da máquina de origem até o primeiro comutador? Quando o primeiro pacote está sendo enviado do primeiro ao segundo comutador, o segundo pacote está sendo enviado da máquian de origem ao primeiro comutador. Em que instante o segundo pacote terá sido completamente recebido no primeiro computador?
+
+O tempo até o primeiro comutador é $t = 1,5.10^3/1,5.10^6 = 10^{-3}s$. O segundo pacote é completamente recebido no segundo comutador no instante $t' = 2.10^{-3}$.
+
+\letra{c} Quanto tempo demorará para movimentar o arquivo da máquina de origem até a máquina de destino quando é usada segmentação de mensagem? Compare este resultado com sua resposta na parte `a' e comente.
+
+O primeiro pacote demora $3.10^{-3}s$ para chegar à origem. Após ele chegam a cada $10^{-3}s$ um pacote. 
+Assim o tempo total de transmissão é $3 . 10^{-3} + 4999 . 10^{-3} = 5002 . 10^{-3}s$.
+
+\letra{d} Discuta as desvantagens da segmentação de mensagem.
+
+No modelo de comutadores tipo store-and-forward é interessante ter mensagens pequenas, pois se mantém menos dados nos comutadores, eles precisam menos espaço e podem lidar com um fluxo mais heterogêneo de mensagens. Tem-se um atraso maior usando-se segmentação, apesar de ser bastante pequeno no exemplo.
+Além disto, com os cabeçalhos, a quantidade de dados a serem transmitidos com segmentação é maior.
+
+\section{Capítulo 2}
+
+\paragraph{Q6} Que informação é usada por um processo que está rodando em um hospedeiro para identificar um processo que está rodando em outro hospedeiro?
+
+É necessário saber o endereço do host do processo e o número da porta associada ao processo.
+
+\paragraph{Q9} O que significa protocolo de apresentação?
+
+É uma troca de mensagens entre dois hosts a fim de estabelecer uma conexão entre eles e iniciar uma troca de dados.
+
+\paragraph{Q12} Qual a diferença entre o HTTP persistente com paralelismo e HTTP persistente sem paralelismo? Qual dos dos é usado pelo HTTP/1.1?
+
+O usado é o com paralelismo. Nele o cliente pode requisitar mais objetos antes de receber o primeiro objeto requisitado. No outro caso, cada solicitação e envio de objetos são sequenciais.
+
+\paragraph{Q15} Por que se diz que o FTP envia informações de controle 'fora da banda'?
+
+Pois cria uma nova conexão para transferência de dados, não usando aquela empregada para navegação e controle.
+
+\paragraph{Q16} Suponha que Alice envie uma mensagem a Bob por meio de uma conta de e-mail da Web (como o Hotmail), e que Bob acesse seu e-mail por seu servidor de correio usando POP3. Descreva como a mensagem vai do hospedeirao de Alice até o hospedeiro de Bob. Não se esqueça de relacionar a série de protocolos de camada de aplicação usados para movimentar a mensagem entre os dois hospedeiros.
+
+Via HTTP ela vai para o servidor, que repassa via SMTP para o outro servidor, que é acessado via POP pelo destinatário.
+
+\paragraph{Q19} É possível que o servidor Web e o servidor de correio de uma organização tenham exatamente o mesmo apelido para um nome de hospedeiro (por exemplo, \texttt{foo.com}? Qual seria o tipo de RR que contém o nome do hospedeiro do servidor de correio?
+
+Sim, é possível. O servidor de correio associado ao domínio é armazenado em entradas do tipo MX.
+
+\paragraph{Q22} O servidor UDP descrito na seção 2.8 precisava de uma porta apenas, ao passo que o servidor TCP descrito na seção 2.7 precisava de duas portas. Por quê? Se o servidor TCP tivesse de suporta $n$ conexões simultâneas, cada uma de um hospedeiro cliente diferente, de quantas portas precisaria?
+
+O servidor TCP possui duas portas: uma recebe as solicitações de conexão e cria outra porta por onde o tráfego de dados se dá efetivamente.
+Para suportar $n$ conexões são necessárias $n+1$ portas.
+
+\paragraph{Q23} Para a aplicação cliente-servidor por TCP descrita na seção 2.7, por que o programa servidor deve ser executado antes do programa cliente? Para aplicação cliente-servidor por UDP descrita na seção 2.8, por que o programa cliente pode ser executado antes do programa servidor?
+
+Porque a conexão tem que ser estabelecida e, para tal, o servidor deve estar ativo. Caso contrário os dados do cliente não chegarão a serem enviados.
+No UDP se o cliente é executado antes do servidor não haverá nenhuma saída, mas o programa funciona pois não é necessária uma conexão prévia.
+
+\paragraph{P6}
+%TODO
+
+\paragraph{P7}
+%TODO
+
+\paragraph{P9}
+%TODO
+
+\paragraph{P23}
+%TODO
+
+\section{Capítulo 3}
+
+\paragraph{Q1} Fonte é $y$ e o destino é $x$.
+
+\paragraph{Q2} Esta escolha depende da aplicação. 
+Se ela tem mecanismos para lidar com (ou não muda nada para ela) a perda e o desordenamento de pacotes, é interessante. 
+Se ela quer velocidade e usar completamente a banda, ou seja enviar mensagens a qualquer hora e a qualquer taxa e ter pacotes com cabeçalhos menores (e assim, transmissão mais rápida).
+Além disto se a rede entre os hosts é rápida e com muitos poucos erros.
+
+\paragraph{Q3} Sim, é possível. 
+Será necessário implementar os mecanismos de entrega confiável (possivelmente em ordem) na camada de aplicação.
+Para tal é necessário identificar a perda de pacotes (com ACKs e timers ou através de sequência semântica da aplicação) e numerá-los para que a entrega seja em ordem.
+
+\paragraph{Q4} a. falso (alguns ACKs são obrigatórios)
+b. falso (o controle de congestionamento e de fluxo o fazem)
+c. verdade (é o princípio do controle de fluxo)
+d. falso (o número depende do tamanho do pacote)
+e. verdade
+f. falso (depende do do DevRTT, pois o SampleRTT tem peso 1/8)
+g. falso (os números de ACK e sequência são independentes no mesmo segmento)
+
+\paragraph{Q5} a. tem X - 90 bytes de dados
+b. 90, pois o ACK é dado para o último número de sequência recebido em ordem
+
+\paragraph{Q6} Enviará um seg com seq=44 e ack=80 e receberá duas respostas com seq=82 e ack=...
+
+\paragraph{Q7} Metade, ou seja, $R/2$.
+
+\paragraph{Q8} Falso. Quando o timeout do emitente expira o tamanho da janela cai para 1 MSS e o threshold vai para a metade do tamanho da janela quando houve o timeout.
+
+\paragraph{P10} O protocolo do bit alternante pode falhar se houver reordenamento de mensagens.
+
+\paragraph{P11} No segundo caso seria interessante, pois o envio poderia ser imediato (sem aguardo de confirmações) e somente as raras falhas seriam reportadas e os segmentos equivalentes reenviados. Neste caso a recepção poderia ser fora de ordem e seria necessário reordená-la.
+No primeiro caso não seria interessante, pois as perdas não seriam conhecidas pois há poucos dados enviados e o gap pode não ser reconhecidos (ou vai demorar).
+
+\paragraph{P12} Tem-se que o $\frac{nL/R}{RTT + L/R}$ é o uso da rede. Como tem-se $0.027\%$ precisa-se $n = 90/0.027 = 3333.3333 < 3334$.
+
+\paragraph{P19a} Quando recebe-se um ACK para um determinado número de sequência a base é incrementada e este valor fica fora da janela. Se o número de sequência máximo não for suficiente, pode-se receber uma ACK ``perdido'' e que já foi reenviado muito tempo depois. Neste caso, ele será descartado.
+
+\paragraph{P19b} Pelo mesmo motivo.
+\paragraph{P19c e d} Verdade. Em ambos os casos se envia uma mensagem e se descartam outras mensagens fora de ordem até que um ACK volte.
+
+\paragraph{P20} a. o número de sequência é associado ao tamanho. Assim, com $2^{32}$ valores é possível mandar este número de bytes.
+
+b. O atraso de transmissão será de $n.L/R$. O número de segmentos é de $2^{32}/1460 = 2941758$. O tamanho de cada é $1460 + 66 = 1526$ e o tempo de transmissão será de $2941759 . 1526 .8 / 10^6$.
+
+\paragraph{P25} Pois a entrega é fora de ordem. Assim, supondo o ACK para o segmento $x$ é bem possível que o segmento $x+1$ seja recebido após o $x + 2$ e por aí vai.
+
+\paragraph{P27} Entre as rodadas 1 e 6 e 23 e 26 teve-se a duplicação da janela a cada rodada (RTT). Está-se na partida lenta.
+Entre as rodadas 6 e 15, entre 17 e 22 está-se no controle de congestionamento, visto fato que a janela cresce em 1 MSS.
+Na rodada 15 houveram 3 ACKs duplicados e a janela caiu pela metade.
+Na rodada 22 houve um timeout estourado.
+O valor do threshold inicial era de 32 MSS, que é o valor da janela que causou o incío do congestion avoidance. 
+Na rodada 16 ele caiu para 21, pois houve detecção de congestionamento e ele era 42 antes (na rodada 15).
+Na rodada 22 a janela era 26 e caiu para 13 após a detecção do congestionamento.
+Rodadas e segmentos: 1,1; 2,3; 3,7; 4, 15; 5, 31; 6, 63; 7, 96. Assim, o segmento 70 foi enviado na rodada 7.
+Na rodada 26 a janela tem tamanho 8 e threshold de 13. Perdendo-se um pacote nesta rodada teria-se janela e threshold de tamanho 4.
+
+\paragraph{P30} O controle de fluxo TCP limita o tamanho da janela do emissor a partir do espaço livre no buffer do receptor. Como este é suficiente para manter todo o fluxo este limite não existiria.
+Mesmo sendo a taxa de chegada de dados ao TCP do emitente superior à capacidade do canal em 10 vezes, o controle de congestionamento não vai reduzir o tamanho da janela, pois não há perdas ou duplicação de ACKs.
+Como o buffer de saída é $1\%$ do tamanho do arquivo, se ele tiver tamanho menor que $R$ bits ele também passará a ser uma limitação.
+Assim, a janela máxima possível (que seria de $R$ bytes) nunca seria atingível.
+
+\paragraph{P33} A vantagem é ter uma janela inicial bastante grande e poder enviar muitos pacotes logo no primeiro timeout. A questão são as outras conexões. Se a rede tiver tomado um estado de grande tráfego, o envio de uma quantidade imensa de pacotes irá aumentar o problema. Até porque vários deles não irão chegar. Neste caso, empregando o Reno terá uma perda e a janela cairá para apenas um pacote.
+
+\subsection{Problema 34}
+
+Nela faz-se o cálculo da latência para envio de dados continuamente passados pela aplicação para o outro host usando uma conexão TCP.
+São dados o $RTT$, o tamanho $O$ do arquivo, o MSS $S$, o tamanho $W$ da janela de transmissão e taxa de transmissão $R$.
+
+A conexão demanda uma troca de mensagens e se solicita os dados no segundo envio. Então o primeiro bit de dados chegam em $2RTT$.
+Após isto, o primeiro ACK é enviado após $S/R$ que é o tempo de chegada do primeiro MSS.
+
+Se este ACK chegar ao emissor antes do final do envio dos $W$ segmentos da janela, o envio será contínuo.
+Assim, se $RTT + S/R < W(S/R)$ então o tempo total de envio será de $2.RTT + O/R$.
+
+Caso contrário, o emissor ficará aguardando pelo ACK sem enviar, ou seja, por $S/R + RTT - W(S/R)$.
+Assim, seja $K = O/(WS)$ a quantidade de janelas que são necessárias para o envio de todos os $O$ bits de dados.
+Este tempo de inatividade do emissor ocorrerá $K-1$ vezes.
+Assim, o tempo de envio será $2.RTT + O/R + (K-1).(S/R + RTT - W(S/R))$.
+
+Em resumo, o tempo total para receber um fluxo de dados é a soma: 
+(i) do tempo até receber o primeiro bit (depende do RTT); 
+(ii) o tempo para a transmissão de todos os dados (depende da taxa e do tamanho do arquivo);
+(iii) o tempo de ociosidade do emissor entre as $K$ janelas que serão enviadas, que depende do tamanho da janela, do tamanho do MSS, da taxa e do RTT.
+
+Os valores dados são o $RTT = 100ms$, $O = 100kbytes$ e $S = 536 bytes$.
+Pergunta-se a latência mínima e o $W$ mínimo necessário, com taxas $R_1 = 28kbps$, $R_2 = 100kbps$, $R_3 = 1Mbps$ e $R_4 = 10 Mbps$.
+
+É feito para $R_1 = 28kbps$ e para os outros é equivalente.
+A latência mínima ocorre se a janela for grande a ponto para que $RTT + S/R \le W(S/R)$.
+Neste caso a latência é dada por $2.RTT + O/R = 2.0.1 + 100.1024.8/28.1000 = 29.2$ segundos.
+Para tal $W \ge (RTT + S/R)/(S/R) = 1.65$, então $W = 2$.
+\section{Capítulo 4}
+
+\paragraph{Q2}
+
+%TODO
+
+\paragraph{Q8}
+
+%TODO
+
+\paragraph{P7}
+
+%TODO
+
+%Questões: 19, 21, 22, 24, 32, 35, 36
+%Problemas: 21, 23

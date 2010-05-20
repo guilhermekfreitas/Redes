@@ -1,0 +1,145 @@
+\chapter{Camada de Aplicação}
+
+\section{Princípios das aplicações de rede}
+
+Em toda aplicação de rede há sempre um \emph{cliente}, que envia a primeira mensagem, que seria uma solicitação.
+O \emph{servidor} então responde à solicitação e há uma troca de mensagens entre eles.
+
+Visto esta forma como se dão as aplicações de rede tem-se uma arquitetura mais empregada, que é a \emph{cliente-servidor}.
+A principal característica do servidor é estar sempre on-line, aguardando as solicitações que sempre são iniciadas por clientes, que não necessariamente estão sempre on-line.
+
+Na outra arquitetura possível, tem-se que os hosts da rede tem códigos idênticos, podendo agir como clientes e servidores, fornecendo e solicitando serviços.
+Esta arquitetura é a \emph{peer-to-peer} pois os hosts são chamados de \emph{peers}.
+
+As suas vantagens (tanto que elas estão sendo cada vez mais icentivadas) são a escalabilidade natural e 
+o menor custo para manter toda uma infra-estrutura de servidores, fazendo com que ela seja considerada \emph{cost effective}.
+
+O que limitação seu emprego são três fatores: a forma como as redes de acesso operam, sendo normalmente assimétricas as bandas up ou down;
+o icentivo que tem que ser dado aos hosts (que já não são de uma empresas, pagos por elas e exclusivo para aquele uso) para que eles disponibilizem serviços; e a questão da segurança que advém de não se ter algo centralizado e tudo distribuído, sendo mais difícil saber em quem confiar.
+
+Tendo estas arquiteturas, aborda-se como elas são implementadas.
+As aplicações empregam \emph{sockets} que são estruturas mantidas pelos sistemas operacionais responsáveis por abstrair as especificidades da troca de mensagens entre os processos.
+
+Estes sockets são, então, interfaces da camda de transporte, que fornecem alguns serviços para aplicações que a empreguem.
+Dentre os serviços desejáveis tem-se a \emph{entrega confiável} (oferecida pelo TCP), que nem sempre deve ser necessária, 
+tendo-se aplicações que podem lidar com perda de mensagens sem problemas (e usam UDP, no caso).
+Outros serviços estão ligados ao \emph{throughput} e \emph{timing} que poderiam ser garantidos, o que não ocorre na Internet (por se usar comutação por pacotes, em prática).
+Eles seriam interessante para uma série de aplicações, que devem lidar com as consequências de perdas da taxa fim-a-fim de transmissão (por uma série de motivos) e variações consideráveis no atraso de entregas.
+Uma última garantia é a de segurança, fazendo com que só os aplicativos dos hosts comunicantes tenham conhecimento do conteúdo das mensagens.
+Isto é implementado com a ``subcamada'' SSL, que encripta as mensagens antes dela ser enviada para o protocolo de transporte.
+
+Na prática a Internet provê o TCP e o UDP. 
+O primeiro é orientado a conexões, o que faz com que uma conexão tenha que ser mantida para haver a troca de dados, 
+e tem-se garantias de entrega de mensagens, que são checadas por erros e são entregues em ordem.
+O segundo não é orientado a conexão, ou seja, não se mantém estado e as mensagens são ``simplesmente'' enviadas.
+A TCP tem também um controle de congestionamento, que permite que as mensagens não inundem a rede e faz com que se tenha certa ``justiça'' na distribuição dos recursos. 
+O protocolo UDP ``permite'' que a rede seja inundada por um processo, o que pode ser interessante se quer-se desempenho e a possibilidade de usar todos os recursos necessários.
+
+Outro serviço que é oferecido às aplicações na Internet é o de endereçamento.
+Uma aplicação passa a ser unicamente identificada através do \emph{endereço IP} de seu hospedeiro e, como podem haver várias aplicações num mesmo host, a elas também estão associado um \emph{número de porta}.
+
+\section{Protocolos de Aplicação}
+
+Eles são padrões para a comunicação entre um par de processos, cada um agindo como cliente ou servidor em cada conexão.
+Define-se uma semântica das mensagens, como se inicia, encerra as conexões e os campos onde serão explicitados o contexto da transmissão de dados.
+Além disto, define-se o comportamento, ou seja, quando uma das partes envia uma mensagem e o seu conteúdo.
+
+\subsection{HTTP}
+
+É um dos protocolos mais importantes da Internet, provendo acesso ao conteúdo.
+Há duas partes envolvidas: o \emph{browser} cliente e o servidor Web.
+
+O \emph{HyperText Transfer Protocol} possui uma série de \emph{request} do cliente e \emph{response} do servidor.
+O servidor, por sua vez, não mantém estado a não ser que se usem \emph{cookies} que são números mantidos no cliente que o servidor pode empregar para localizar dados da conexão (ou de anteriores) em algum banco de dados dele.
+
+As conexões HTTP são de dois tipos: \emph{não-persistentes}, quando uma conexão traz um único objeto ou \emph{persistente} caso múltiplos objetos são enviados pela mesma conexão. 
+Dentro das persistentes é possível ainda haver \emph{pipeline}, fazendo com que o cliente solicite um objeto assim que o identificar e sem aguardar o envio do objeto subsequente.
+O padrão HTTP 1.0 usa conexões não persistentes, enquanto o 1.1 usa persistentes com pipeline, por padrão.
+
+Quando várias máquinas acessam o mesmo conteúdo pode ser interessante configurar \emph{proxyes} que retornam os objetos imediatamente, caso não seja explicitamente solicitada a versão mais nova, do servidor.
+
+Quanto uma mesma máquina acessa várias vezes o mesmo conteúdo ela mantém o último obtido em cache local.
+É possível fazer um \emph{conditional GET} que retorna o objeto somente se ele tiver sido modificado (caso contrário retorna 304).
+
+\subsection{FTP}
+
+Protocolo de transferência de arquivos, sendo usada a porta 21 por padrão.
+Esta é a porta da \emph{conexão de controle}, por onde ocorre a autenticação, a navegação e a solicitação de dados.
+Os dados per si podem ser enviados em outra conexão, fazendo com que o controle seja \emph{out of band}.
+
+\subsection{E-mail}
+
+Outro serviço importante da Internet, formado por agentes usuários, servidores de e-mail e o protocolo \emph{Simple Mail Transfer Protocol}.
+O SMTP é usado entre os servidores para enviar mensagens de um usuário hospedado nele para a caixa de outro usuário em outro servidor.
+
+Entre o usuário e o servidor são usados alguns protocolos. 
+Para recebimento das mensagens da caixa tem-se o \emph{POP} e o \emph{IMAP} e pode-se usar alguma interface Web, via HTTP.
+Para envio, usa-se o SMTP.
+
+\subsection{DNS}
+
+O \emph{Domain Name Server} é o serviço responsável pela tradução de nomes para endereços IP na Internet.
+Ele é um banco de dados distribuído e é um protocolo de aplicação (fica na borda) que roda em UDP.
+
+Ele contém uma hierarquia onde tem-se os servidores raiz (que são poucos pelo mundo) 
+que tem endereços de uma série de servidores top-level-domain (.br, .org), 
+que tem os endereços dos servidores de instituições, que tem endereços dos hosts.
+
+Na consulta os hosts se conectam a um servidor local. Ele pode ter a resposta em cache ou pode iniciar a consulta.
+Há duas formas de fazer a consulta: \emph{recursiva} ou \emph{iterativa}.
+
+Na recursiva o servidor local solicita ao raiz o endereços, este solicita ao próximo responsável e por aí vai até chegar ao autoritativo (o que responde pelo endereço).
+Daí o caminho de volta é feito e a resposta chega ao local, que repassa ao cliente.
+
+Na iterativa, o servidor local solicita à raiz o endereço do próximo servidor e ele mesmo o consulta, assim em diante, até obter o endereço final, que é repassado ao cliente.
+
+Os registros do DNS são dos tipo: 
+\emph{A} associa nome a IP, 
+\emph{CNAME} associa apelido a nome canônico, 
+\emph{NS} associa domínio ao seu DNS autoritativo 
+e \emph{MX} associa o domínio ao seu servidor de e-mails.
+
+\section{Aplicações P2P}
+
+Há várias formas de arquitetura P2P.
+
+A de diretórios centralizados possui um servidor (como o Napster original) que contém o conteúdo e o endereço dos peers e faz autenticação.
+Este é uma espécie de modelo misto, onde há um servidor que centraliza informações importantes.
+
+É possível ter-se um diretório descentralizado, formado por uma série de nós especiais que agem como tal e ao qual estão ligados uma série de nós ``normais''. 
+Este modelo é descentralizado e hierárquico.
+
+Outra possibilidade é a forma totalmente descentralizada, onde conhece-se um peer e através dele tenta-se chegar ao destino, inundando a rede com a solicitação, cada um enviando a solicitação a todos os vizinhos. Um exemplo seria o Gnutella.
+
+\subsection{Distribuição de arquivos P2P}
+
+A vantagem desta abordagem aparece quando um arquivo grande deve ser distribuído para uma série de vários hosts distintos.
+No modelo cliente-servidor o tempo total de distribuição dependerá dos links de download dos clientes (do mais lento) ou da taxa de upload do servidor,
+supondo que as redes de acesso sejam o funil da rede.
+
+Já no modelo P2P os cliente pode obter o arquivo do servidor e distribuí-los com outros nós da rede.
+Assim o tempo máximo de distribuição será o que pior for entre as taxas de download mínimo ou upload do server para baixar uma cópia
+e distribuição das $N$ cópias com o upload de todos os peers.
+
+A diferença será a escalabilidade, pois o custo do modelo clássico aumenta linearmente com o número de clientes enquanto o P2P tende a não passar de um máximo, independentemente do número de peerrs.
+
+Uma aplicação famosa nesta área é o Bit Torrent. 
+Cada conjunto de dados é um torrent que contém um tracker que é um servidor.
+O tracker passa aos clientes uma lista de alguns peers do mesmo torrent e com eles são trocados chunks (pedaços do total).
+Dentre um peer e seus vizinhos tem-se um esforço de obter os chunks menos frequentes e de fornecer chunks aos vizinhos que enviam dados a maiores taxas.
+Isto converge pela escolha ``otimistas'' de vizinhos arbitrários para enviar dados, fazendo com que eles também troquem dados efetivamente.
+
+\subsection{Distributed Hash Table}
+
+Esta aplicação permite gerar um banco de dados distribuídos.
+Os dados são localizados nos peers que são mais próximos ao hash do conteúdo buscado.
+
+A fim de facilitar a busca, cria-se uma rede overlay circular (com conceito de sucessor e antecessor) com ``atalhos'' para diminuir o custo de busca e inserção.
+
+\subsection{Comunicação - Skype}
+
+Uma aplicação importante de P2P é o Skype.
+Ele possui uma arquitetura P2P hierarquizada, contendo supernós (em uma rede overlay) ao qual estão associados uma série de nós.
+
+O banco de usuários on-line é obtido destes supernós que também tem o papel de intermediar a comunicação P2P entre peers que estiverem atrás de NAT.
+

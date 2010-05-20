@@ -1,0 +1,228 @@
+\chapter{Redes de computadores e a Internet}
+
+Define a Internet a partir de duas abordagens: componentes de software e hardware e em termos de uma infra-estrutura de rede que provê serviços para aplicações distribuídas.
+
+Os dispositivos são chamados de \textbf{hosts} ou \textbf{end systems}, que são conectados entre si através de links de comunicação e switches de pacotes.
+Diferentes links possuem taxa de transmissão distintas, medidas em bits/s. Por eles passam pacotes, contendo dados e cabeçalhos com meta-dados.
+Dentre os switches se destacam os routers (normalmente no core da rede) e os link-layer switches (normalmente usados em redes de acesso).
+Ambos fazem o forward de pacotes para seus destinos. A sequência de links e packets switches atravessados por um pacote enviado é chamado de rota ou path.
+
+Os \emph{end systems} acessam a internet através de \emph{Internet Service Providers}, que são, per si, uma rede de packets switches e links.
+Eles provém acesso aos usuários através os mais diversos tipos de enlaces e taxas de transmissão. Ao mesmo tempo, eles são provedores de conteúdo disponibilizado na Internet.
+Os ISPs são também interconectados, formando uma hierarquia de redes.
+
+Os \emph{end systems} usam protocolos para controle da troca de dados, nos quais se destacam o IP e o TCP. O primeiro define o formato dos pacotes enviados e recebidos entre os routers e os end systems. O segundo dá suporte aos principais protocolos usados para troca de informações.
+
+A Internet também pode ser descrita como uma infra estrutura que provê serviços para aplicações, ditas distribuídas, que executam nos end systems e não no core da internet ou nos packet switches.
+Os end systems ligados à Internet oferecem uma \emph{Application Programming Interface} que especifica como os softwares rodando em outros end systems podem acessar as informações disponibilizadas.
+Para que estas informações sejam trocadas, a Internet provê serviços que permitem a comunicação entre estes elementos de software.
+
+\section{Borda da Internet}
+
+Os end systems são normalmente chamados de \emph{hosts}, pois são os lugares onde aplicativos da Internet rodam.
+Normalmente estes aplicativos são formados por dois tipos programas diferentes: \emph{clients} e \emph{servers}.
+Os primeiros normalmente solicitam e recebem algum serviço dos servers.
+Para tal eles se comunicam através de trocas de mensagens seguindo algum protocolo pré-estabelecido e conhecido por ambos.
+Neste nível, os links e switches são abstraídos, tratados como ``caixa-pretas'' que fazem a troca de dados entre os dois lados.
+
+Outra possibilidade de comunicação é o modelo \emph{Peer to peer} o P2P.
+Nele todos os hots agem tanto como clientes como servidores.
+
+\subsection{Redes de acesso}
+
+Seriam as redes que conectam os end systems ao primeiro roteador (dito de borda) no trajeto entre eles e outros end systems em outras redes.
+
+\paragraph{Dial-up} Muito empregada nos anos 90 para acesso residencial. Aproveita a infra-estrutura telefônica e os hosts fazem uma chamada tradicional para algum ISP. Um aparelho chamado modem converte o sinal digital vindo dos PCs para um sinal analógico que é enviado ao ISP, que o reconverte ao formato digital. Apresenta baixas taxas de transmissão e ocupam a linha telefônica.
+
+\paragraph{DSL} É o modo de acesso residencial mais difundido atualmente. Também aproveita a infra-estrutura telefônica, fazendo passar pelos pares trançados da telefonia três ``canais'': upstream, downstream e voz. Nas residências tem-se um \emph{splitter} que separa o canal de voz dos de dados, que são enviados a um modem específico que faz a conversão digital-analógico. Na outra parte tem-se os \emph{DSLAN} que separam o sinal (de várias residências) telefônico dos sinais de dados, digitalizados e repassados à Internet. A taxa de transmissão é considerável e depende da distância da residência e as estações, pois o sinal se degrada com a distância, por conta da atenuação e da interferência. Normalmente a banda upstream é menor que a downstream, sendo a DSL chamada de assimétrica. Outra vantagem é o uso simultâneo do telefone e da Internet. Não há chamada para o ISP como no dial-up e a conexão é persistente.
+
+\paragraph{Cabo} Neste modo se aproveita da infra-estrutura de TV a cabo. 
+Nela tem-se os \emph{head end} que fazem broadcast os canais de televisão, que viajam via fibra ótica até junções setoriais (\emph{neighboorhood-level}).
+De lá saem cabos coaxiais que alcançam as residências, o que faz com que a arquitetura seja chamada \emph{hybrid fibre coax}.
+Nas residências tem-se os chamados modens a cabo que dividem o sinal em uma banda upstream e uma maior downstream. Um dado importante é que o meio de comunicação é compartilhado, ou seja, todas as mensagens enviadas pelo \emph{head end} são recebidas em todas as casas e todas mensagens enviadas por um modem ocupam o meio, sendo necessário um protocolo para coordenar os envios de dados.
+Outra consequência disto é que a banda downstream é compartilhada por todos usuários, fazendo com que melhores taxas sejam obtidas com menos usuários empregando o serviço, enquanto se poucos usam o serviço, toda a banda upstream pode ser usada por um usuário.
+
+\paragraph{Fibber-To-The-Home} Visto que as taxas de transmissão via fibra ótica são superiores às dos cabos metálicos, algumas empresas fornecem este serviço às residências. Este acesso pode ser dedicado, com uma fibra por residência. Outra forma é o acesso compartilhado, feito com duas arquitetura \emph{active optical networks (AONs)} e \emph{passive optical networks (PONs)}. Na primeira tem-se um compartilhamento de rede como é feito na Ethernet. 
+Na segunda tem-se nas residências equipamentos chamados \emph{optical network termination (ONT)} que recebem os dados de uma fibra ótica que vai até uma estação regional que é o um \emph{optical splitter} que une os sinais e envia para um \emph{optical line terminator (OLT)} que faz a transformação para sinais elétricos. O OLT é normalmente associado um grupo de telecomunicações, que também provê telefone e canais de TV. Assim como na conexão a cabo, todos os pacoes enviados pelo OLT são replicados pelo splitter e recebidos por todos os ONTs.
+
+\paragraph{Ethernet} É o modo mais comum de acesso em LANs, conectadas a um roteador de borda. A transmissão se dá por pares-trançados isolados de metal que possui uma tecnologia particular de controle de acesso ao meio (que é compartilhado). Esta arquitetura usa de switches locais que conectam os end systems (clientes ou servidores) entre si e com o roteador.
+
+\paragraph{WiFi} É a tecnologia IEEE 802.11, usada para acesso à rede a partir de dispositivos sem fio. Em uma WLAN os end systems enviam/recebem mensagens de/para uma estação base conectada a redes cabeadas ou \emph{wired}. Estas estações podem ser conectadas a uma LAN, à Internet diretamente ou uma rede de acesso com outra tecnologia qualquer. A limitação é o alcance das antenas das estações bases, que se restringe a alguns metros. Há possibilidade de antenas mais potentes, para áreas maiores de abrangência.
+
+\paragraph{Wide-Area Wireless Access} Outra possibilidade são as WLANs que permitem o acesso de dispositivos empregando a infra-estrutura existente para a telefonia celular, usando as antenas como estações bases, com alcance muito maior. Em desenvolvimento nos últimos tempos é a tecnologia 3G que provê acesso sem fio de largo alcance, via comutação de pacotes e com velocidades mais altas.
+
+\paragraph{WiMAX} A IEEE 802.16 é uma concorrente para a WiFi. Eles prometem altas velocidades e operariam independentemente à infra-estrutura da telefonia celular.
+
+\subsection{Meios de transmissão}
+
+Esta seção analiza os meios usados para transmissão dos bits nas redes. Há a distinção de meios guiados e meio não guiados (tecnologia ``sem fio'').
+
+\paragraph{Duplo par-trançado}
+Tecnologia mais barata, consiste em um par de fios trançados (para reduzir interferências) e isolados (com não condutores) e está presente na maior parte das residências, por ter ser usado em cabeamento telefônico. Estes cabos são usados no acesso dial-up (<56 kbps) e DSL (passam de 6Mbps). Os \emph{Unshielded Twister Pair (UTP)} são os mais usados em LANs de alta velocidade, tendo velocidades entre 10 Mbps e 1Gbps. Eles consistem em vários pares-trançados embalados em material isolante, para evitar interferência magnética.
+
+\paragraph{Cabo coaxial}
+Consiste em dois condutores concêntricos isolados entre si e isolados do meio. É mais rígido e tem altas taxas de transmissão, além de poder ser usado como meio compartilhado, podendo vários computadores se conectar a um cabo e ter acesso a todo conteúdo trocado.
+
+\paragraph{Fibra ótica}
+Os bits são modulados em comprimentos de luz que caminha em um cabo isolado, flexível e fino, se refletindo em suas paredes.
+Tem taxas de transmissão muito alta, pouca interferência e atenuação, sendo usados para comunicação de longo alcance. 
+Sua principal limitação é o preço. Suas velocidades nos modelos $OC-n$ são da faixa de $51,8x Mbps$, havendo já tecnologias para $n$ 1,3,12,24,48,96, 192, 768.
+
+\paragraph{Rádio - canais terrestres}
+Tem a vantagem de não precisar de meio físico (é o ar), mas sofre de (auto)-interferência, atenuação que limitam sua abrangência. 
+Nas LANs usa-se frequências específicas, com alcance limitado. Nas redes celulares, tem-se tecnologias de maior alcance e menores taxas.
+
+\paragraph{Rádio - satélites}
+Neste modo satélites posicionados no espaço recebem transmissões em uma frequência e retornam em outra frequência. Há dois tipos principais: os geoestacionários, que não se ``movem'' em relação ao solo (são poucos) e os de baixa órbita, que giram com a terra e tem que se comunicar entre si (tem menor alcance), podendo ser usados no futuro.
+As taxas de transmissão são altas, mas tem-se um atraso considerável (principalmente nos geoestacionário), chegando a 4 segundos.
+
+\section{The Internet core}
+
+Inicialmente define-se os modelos de comunicação, ou seja, de transporte das mensagens entre os end systems através dos links e switches.
+
+\subsection{Comutação por circuitos}
+
+Nesta forma de organização tem-se que o caminho entre dois end systems deve ser reservado antes do início de uma troca de dados.
+Assim, antes da troca de dados é criado um \emph{circuito} entre os transmissores, reserva-se uma parcela da capacidade de transmissão para esta \emph{conexão}.
+Os dados, então, trafegam na rede por um caminho pré-determinado, com garantia de uma dada taxa de transmissão e um limitante para os atrasos.
+
+Neste modelo, um link é compartilhado por uma série de conexões, que obtém parte de sua capacidade.
+Esta divisão pode ser realizada de duas formas.
+
+A primeira é a \emph{Frequency-division multiplexing (FDM)}, onde a capacidade de transmissão do meio é dividida em faixas de frequências distintas e isoladas que serão usadas por conexões diferentes, tal como as frequências de rádio são distribuídas entre diferentes emissoras.
+Obviamente, a taxa de transmissão é tão grande quanto maior for a amplitude da faixa (ou largura de banda) reservada.
+
+A segunda forma é \emph{Time-division multiplexing (TDM)}, onde a banda de transmissão é dividida slots de tempo, reservados às conexões.
+Assim, cada conexão usa o canal para suas transmissões por um slot de tempo, resultando que a taxa obtida por ela é a taxa do canal divida pela quantidade de slots existentes.
+
+Este modelo é o mais empregado (apesar de em migração) pelas redes telefônicas, visto as suas garantias de taxas de transmissão e de atraso.
+Vale notar que em tais transações, a quantidade de dados trocados costuma ser constante e tem-se exigências de qualidade, pois são empregadas para interações em tempo real.
+
+As limitações do modelo são claras: o subuso dos links e as limitações em escalabilidade.
+Como cada conexão reserva para si uma fatia da capacidade de transmissão, o número de clientes por canal é claramente limitado e de remanejamento não trivial.
+Além disto, quando não há efetiva troca de dados os slots de tempo ou faixas de frequências não são usados e outras conexões não podem se apossar de tal capacidade inutilizada.
+
+\subsection{Comutação por pacotes}
+
+Ao contrário do modelo anterior, aqui não se reservam recursos e nenhuma rota (ou circuito) é estabelecida com antecedência.
+Os dados são quebrados em várias partes de tamanho limitado, chamados \emph{pacotes}. 
+Estes pacotes são lançados na rede com destino a um roteador mais próximo, a partir do qual são repassados a outros roteadores e links até o destino.
+
+Cada pacote ocupa o canal por inteiro, empregando toda sua capacidade para transmitir os bits, que vão sendo armazenados no \emph{packet switch} até que todo o pacote seja entregue.
+Finalizada a recepção, o switch encaminha o pacote para o link de saída. 
+Caso ele já esteja ocupado por algum pacote, o pacote aguardará em uma fila até que chegue sua vez de ser transmitida.
+Como estas filas são \emph{buffers} nos switches, elas são finitas e caso já estejam repletas, o pacote será descartado.
+
+Nota-se aí grandes diferenças do modelo anterior, geradas pelo fato de que nenhuma banda foi reservada.
+Tem-se um primeiro atraso que depende do tamanho do caminho percorrido pelo pacote. Tendo ele $L$ bits, passando por $Q$ switches conectados por canais de taxa de transmissão $R$, tem-se um atraso decorrente deste método de \emph{store-and-forward} de $QL/R$.
+O segundo atraso é o de enfileiramento, ou seja, o tempo que o pacote aguarda na fila de saída antes de usar os links.
+Este é normalmente imprevisível e depende do qual sobrecarregada esteja a rede, fator que tende a aumentar muito os atrasos e até a levar à \emph{perdas} de pacotes, que não cabem na fila.
+
+Apesar destes problemas, este é o modelo empregado prioritariamente na Internet.
+Ele é baseado no conceito de \emph{best effort}: os pacotes são transmitidos da melhor forma possível, dadas as circunstâncias.
+Ou seja, toda a banda disponível é alocada para os pacotes em tráfego e pouca ou nenhuma capacidade de transmissão é disperdiçada.
+Por outro lado, permite-se que a rede seja sobrecarregada, levando a grandes atrasos de enfileiramento, possível congestionamento da rede e perdas.
+
+Outra diferença importante é que em circuitos o pacote é enviado a uma mesma taxa durante todo o caminho percorrido.
+Esta taxa é limitada, porém garantida.
+Usando-se pacotes, a taxa efetiva vai ser a menor taxa dentre as disponíveis no caminho e tem-se todos os atrasos por enfileiramento, resultantes da sobrecarga dos canais de saída.
+Nota-se que esta sobrecarga pode ocorrer simplesmente pelo fato de um link de entrada ter taxa superior a um link de saída.
+
+Os recursos são alocados sob demanda, o que leva a se considerar que neste modelo se realiza \emph{multiplexação estatística}.
+Se há poucos usuários ou se as conexões não são persistentes (o que é bem realista), consegue-se taxas melhores que no modelo de circuitos e também que mais conexões compartilhem um mesmo link.
+
+\subsection{ISPs e Backbones da Internet}
+
+Há uma hierarquia de ISPs na Internet, que são conectados um com os outros a fim de fazer com que as mensagens possam ser trocadas por diferentes pares de end systems pelo mundo.
+
+A parte mais alta desta hierarquia são os ISPs \emph{tier-1}, chamados de \emph{Internet backbone}.
+Eles são dotados de links de alto desempenho e roteadores robustos e são conectados entre si (são \emph{peers}) e por eles passa boa parte do tráfego da Internet.
+
+Abaixo deles há os ISPs \emph{tier-2}, que se conectam a um ou mais ISPs \emph{tier-1}, possivelmente com outros \emph{tier-2} e, finalmente, com outros níveis inferiores da hierarquia.
+No nível mais baixo desta hierarquia estão as diversas redes de acesso, apesar de algumas instituições terem várias conexões distintas, se lingando muitas vezes diretamente aos \emph{tiers} mais altos.
+Em particular, \emph{tiers} mais altos são ditos provedores dos \emph{tiers} mais baixos, que são seus usuários.
+
+Os pontos de interconexão entre ISPs são chamados de \emph{Pontos de Presença (POP)} e contém uma série de roteadores que fazem comunicação entre estas grandes redes.
+Cada ISP de \emph{tier-1} tem uma série de POPs espalhados geograficamente pelo mundo, que os conectam com os \emph{tiers-2} regionais ou com outros \emph{tiers-1}.
+
+\section{Atrasos, perdas e throupughput em redes comutadas por pacotes}
+
+\subsection{Atrasos}
+
+Supondo que um host envia um pacote para outro host, este pacote passa por uma série de links e de nós da rede.
+A cada nó há uma série de atrasos associados a cada pacote que chega por um enlace.
+
+O primeiro atraso é o de \emph{processamento}, onde computa-se o tempo de checar a integridade do pacote (se o protocolo de enlace requerer), extrair o cabeçalho e verificar em uma tabela por qual link aquele pacote deve sair, o que dura alguns microsegundos ou até menos.
+
+O segundo atraso é o de \emph{enfileiramento} que ocorre quando há outros pacotes sendo enviados e/ou já enfileirados no enlace de saída. 
+Ele é variável e depende do tráfego da rede, sendo da ordem de microsegundos até milisegundos.
+
+Como os roteadores usam a técnica de store-and-forward, há uma atraso de \emph{transmissão} da ordem de $L/R$: tamanho do pacote/taxa do link de saída.
+Há também o tempo de \emph{propagação} de cada bit que é dado pela distância entre os dois roteadores sobre velocidade das ondas no meio.
+Esta varia entre $2$ e $3 . 10^8 m/s$, que é a velocidade da luz no vácuo.
+
+Assim, o \emph{atraso nodal} (relativo a cada nó) é dado por $d_{nodal} = d_{proc} + d_{queue} + d_{trans} + d_{prop}$.
+Em casos distintos, tem-se diferentes atrasos predominantes: rede congestionada seria o $d_{queue}$, transmissões via satélite o $d_{prop}$, baixa taxa de transmissão aumenta o $d_{trans}$ e o $d_{proc}$ é mais relevante para computar a capacidade total de processamento de dados de um roteador.
+
+Enfim, no atraso fim-a-fim são computados os atrasos de cada nó (roteador) da rede $d_{proc} + d_{queue}$ 
+e o atraso de cada link da rede $d_{trans} + d_{prop}$.
+
+\subsection{Atraso de enfileiramento e perdas}
+
+Este é o atraso mais importante, normalmente, pois ele é variável: diferentes pacotes numa mesma rota podem ter atrasos deste tipo distintos.
+Como a chegada de pacotes normalmente ocorre com uma frequência variável, estas métricas são estatísticas.
+Seja $a$ a taxa média de pacotes que chegam por segundo, $La$ é o número de bits que chegam e a razão $La/R$ é importante.
+Se esta fração se aproxima de um, a fila cresce indefinidamente, e nas proximidades o crescimento da fila é exponencial com o aumento de $a$.
+Como os buffers não são infinitos, as filas não crescem indefinidamente e ocorrem perdas de pacotes.
+
+\subsection{Throughput}
+
+Contabiliza a taxa em bits/segundo em que os dados são transferidos entre emitente e receptor.
+Como este valor tende a variar, trabalha-se com o \emph{throupughput médio} e o \emph{throupughput instantâneo} que apresentam valores interessantes para transmissões longas e para para interesses imediatos.
+
+O throupughput entre dois hosts, supondo ausência de outro tráfego, será igual à menor taxa de transmissão dentre os links intermediários.
+Este link é chamado \emph{bootleneck link}.
+Na prática, os links do core da Internet tem taxas muito elevadas e assim a limitação está nos links das bordas da rede, ou seja, às taxas fornecidas aos hosts nas redes de acesso.
+
+Outra possibilidade é que várias transferências estejam sendo feitas de vários servidores em uma rede de acesso para outros tantos clientes em outra rede de acesso.
+Caso haja, entre eles, um canal com capacidade inferior à soma das taxas de cada hosts na rede de acesso, ele pode vir a ser um bootleneck.
+
+É importante ressaltar que \emph{throupughput} e \emph{atraso} são medidas distintas, sendo mais ou menos interessantes para cada aplicação específica.
+Assim, transmissão de voz ou vídeo precisam de ambos, enquanto para uma transferência de um arquivo grande, um throupughput médio maior seria o mais interessante.
+
+\section{Camadas}
+
+Discute-se a definição de camadas, de uma pilha de camadas com seus protocolos para estudo e implementação de redes.
+Em prática, dentro de um mesmo host cada camada recebe solicitações da superior e usa serviços da inferior.
+Entre dois hosts, as camadas equivalentes se comunicam através de protocolos.
+
+Emprega-se a pilha protocolos TCP, como se segue.
+A camada mais alta é a de \emph{aplicação}, que troca \emph{mensagens}.
+Abaixo tem-se a camada de transporte, que usa o formato de \emph{segmentos}; 
+a camada de rede, que usa \emph{datagramas};
+a de enlace que usa \emph{frames} e a física, responsável pela troca efetiva de dados e específica para cada tecnologia de comunicação empregada.
+
+Cada um destes ``pacotes'' de cada camada contém os dados (que originalmente vem da aplicação) e um cabeçalho específico, 
+com informações que são úteis à camada equivalente no host que receber tal ``pacote'' na mesma camada.
+Em particular, em aplicação e transporte a comunicação se dá entre os end systems.
+Já nas demais, a comunicação é entre cada par de nós no caminho fim-a-fim.
+
+\section{Segurança em Redes}
+
+Esta seção fala por cima de alguns problemas de segurança principais em redes de computadores.
+Dentre eles tem-se: 
+\paragraph{IP spoofing} falseamento de endereço e recepção de conteúdo alheio
+\paragraph{Man-in-the-midle} interceptação de comunicação fim-a-fim, através de infiltração no core da rede
+\paragraph{Packet sniffing} possibilidade de ver tráfego alheio em redes compartilhadas
+\paragraph{Denial-of-service} faz com que um servidor fique inutilizável, através de invasões, sobrecarga de solicitações ou de conexões (usando o fato do TCP usar conexão em três vias)
+\paragraph{Ataque a hosts com malware} São os trojans (execução de algum programa ou script infectado), worms (infecção sem intervenção do usuário) e Trojan horses (aplicativos mal intencionados mascarados como aplicativos normais). Os dois últimos costumam usar o hosts para se replicar junto aos contatos do usuário.
+
+\section{História da Internet}
+
+Separada em fases:
+\paragraph{61-72} são criadas as bases para a comutação de pacotes. Culmina na ARPAnet de 72.
+\paragraph{72-80} ligação entre redes e novas redes proprietárias ALOHA, Ethernet, DECnet, arquitetura de Cerf e Kahn, princípios da ATM
+\paragraph{80-90} TCP/IP (83), smtp, dns, ftp, controle de congestionamento TCP. Redes nacionais e cerca de 100000 hosts conectados.
+\paragraph{90-2000} hypertext, html, Netscape e comercialização de produtos para Web. P2P, backbones em Gbps, 50 milhões de hosts e cerca de 100 milhões de usuários
+\paragraph{atual} cerca de 500 milhões de hosts (2007), Voip, P2P, wireless, mobilidade
+
